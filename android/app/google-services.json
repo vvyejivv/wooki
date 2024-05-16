@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "477792264481",
+    "project_id": "wooki-3f810",
+    "storage_bucket": "wooki-3f810.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:477792264481:android:a4a430d3ed2c63a8971e60",
+        "android_client_info": {
+          "package_name": "com.example.wooki"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAp_U3kV22OWqZ2j1S101SDzNpKJgmwprU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
