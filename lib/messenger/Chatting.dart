@@ -254,7 +254,7 @@ class _ChatPageState extends State<ChatPage> {
       });
     });
   }
- // 제발 되어라
+ // 제발 되어라!
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
