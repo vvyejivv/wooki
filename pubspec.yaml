@@ -47,6 +47,23 @@ dependencies:
   firebase_core: ^2.31.0
   cloud_firestore: ^4.17.3
   flutter_firebase_chat_core: ^1.6.7
+  kakao_flutter_sdk: ^1.9.1+2
+  flutter_naver_login: ^1.8.0
+  firebase_auth: ^4.19.5
+  firebase_auth_web:
+  http:
+  flutter_chat_ui:
+  image_picker:
+  uuid:
+  intl:
+  file_picker:
+  mime:
+  open_filex:
+  path_provider:
+  mailer:
+  google_sign_in: ^6.2.1
+  shared_preferences:
+  provider:
 
 
 dev_dependencies:
