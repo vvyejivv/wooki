@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +34,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  late GoogleMapController mapController;
 
   @override
   Widget build(BuildContext context) {
@@ -40,8 +42,16 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         backgroundColor: Color(0xFFFFFDEF),
       ),
-      body: Container(
-        color: Color(0xFFFFFDEF),
+      body: GoogleMap(
+        onMapCreated: (controller) {
+          setState(() {
+            mapController = controller;
+          });
+        },
+        initialCameraPosition: CameraPosition(
+          target: LatLng(37.5070, 126.7219),
+          zoom: 14.0,
+        ),
       ),
       bottomNavigationBar: BottomAppBar(
         color: Color(0xFF4E3E36),
