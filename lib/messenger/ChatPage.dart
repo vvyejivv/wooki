@@ -1,91 +1,21 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
-import 'package:intl/date_symbol_data_local.dart';
-import 'dart:convert';
-import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  initializeDateFormatting().then((_) => runApp(const MyApp())); // 날짜 현지화
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) => MaterialApp(
-    home: LoginPage(),
-  );
-}
-
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('로그인 페이지'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ChatPage(userId: 'user1'),
-                  ),
-                );
-              },
-              child: const Text('User1로 로그인'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ChatPage(userId: 'user2'),
-                  ),
-                );
-              },
-              child: const Text('User2로 로그인'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ChatPage(userId: 'user3'),
-                  ),
-                );
-              },
-              child: const Text('User3로 로그인'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class ChatPage extends StatefulWidget {
-  const ChatPage({required this.userId, super.key});
+  const ChatPage({required this.userId, required this.peerId, super.key});
   final String userId;
+  final String peerId;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -272,13 +202,8 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text('채팅방'), // 메시지를 받는 사용자의 userId를 제목에 표시
+      title: Text(widget.peerId), // 메시지를 받는 사용자의 userId를 제목에 표시
       backgroundColor: const Color.fromRGBO(255, 253, 239, 1),
-      actions: [
-        IconButton(onPressed: () {
-
-        }, icon: Icon(Icons.add))
-      ],
     ),
     body: NotificationListener<ScrollNotification>(
       onNotification: (scrollNotification) => true,
@@ -291,8 +216,8 @@ class _ChatPageState extends State<ChatPage> {
         showUserNames: true,
         user: _user,
         l10n: const ChatL10nKo(
-          inputPlaceholder: '대화를 입력하세요...',
-          emptyChatPlaceholder: '주고받은 대화가가 없어요!',
+          inputPlaceholder: '메시지 입력',
+          emptyChatPlaceholder: '주고받은 메시지가 없어요!',
         ),
         theme: const DefaultChatTheme(
           inputBackgroundColor: Colors.white,
