@@ -8,6 +8,8 @@ class Session with ChangeNotifier {
   void login(String username, String email, String phone) {
     _user = User(username: username, email : email, phone : phone);
     notifyListeners();
+    print('세션 정보가 저장되었습니다: ${_user!.getUsername}, ${_user!.getEmail}, ${_user!.getPhone}');
+
   }
 
   void logout() {
@@ -21,4 +23,7 @@ class User {
   final String phone;
 
   User({required this.username, required this.email, required this.phone});
+  String get getUsername => username;
+  String get getEmail => email;
+  String get getPhone => phone;
 }
