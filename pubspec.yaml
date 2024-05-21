@@ -51,15 +51,6 @@ dependencies:
   flutter_naver_login: ^1.8.0
   firebase_auth: ^4.19.5
   firebase_auth_web:
-  http:
-  flutter_chat_ui:
-  image_picker:
-  uuid:
-  intl:
-  file_picker:
-  mime:
-  open_filex:
-  path_provider:
   mailer:
   google_sign_in: ^6.2.1
   shared_preferences:
