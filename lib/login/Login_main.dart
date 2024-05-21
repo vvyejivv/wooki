@@ -15,10 +15,12 @@ import 'package:kakao_flutter_sdk_common/kakao_flutter_sdk_common.dart';
 import 'package:provider/provider.dart';
 import 'package:wooki/main.dart';
 import 'Session.dart';
+import 'package:wooki/FamilyAuth/Auth_main.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SharedPreferences.getInstance();
+  await FirebaseAuth.instance.signOut(); //로그아웃
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -56,6 +58,13 @@ class SocialLogin extends StatefulWidget {
 
 class _SocialLogin extends State<SocialLogin> {
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    // 위젯이 처음으로 생성될 때 세션 정보를 삭제합니다.
+    Provider.of<Session>(context, listen: false).logout();
+  }
 
   // 네이버 로그인
   void _naverLogin() async {
@@ -205,8 +214,11 @@ class _SocialLogin extends State<SocialLogin> {
       var session = Provider.of<Session>(context, listen: false);
       session.login(userData['name'], userData['email'], userData['phone']);
       // 사용자 정보가 세션에 저장된 후에 네비게이션을 실행
+      // Navigator.push(
+      //     context, MaterialPageRoute(builder: (context) => LogoutApp())
+      // );
       Navigator.push(
-          context, MaterialPageRoute(builder: (context) => LogoutApp())
+          context, MaterialPageRoute(builder: (context) => FamilyAuth())
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -339,7 +351,7 @@ class _UserLoginState extends State<UserLogin> {
         var session = Provider.of<Session>(context, listen: false);
         session.login(userData['name'], userData['email'], userData['phone']);
         Navigator.push(
-            context, MaterialPageRoute(builder: (context) => MainPage()));
+            context, MaterialPageRoute(builder: (context) => FamilyAuth()));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('이메일 또는 비밀번호를 다시 확인해주세요.')),

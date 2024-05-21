@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+
 class Session with ChangeNotifier {
   User? _user;
   User? get user => _user;
