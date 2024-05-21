@@ -30,16 +30,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_chat_types:
-  flutter_chat_ui:
-  file_picker:
-  image_picker:
-  open_filex:
-  uuid:
-  intl:
-  path_provider:
-  mime:
-  http:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -51,11 +41,20 @@ dependencies:
   flutter_naver_login: ^1.8.0
   firebase_auth: ^4.19.5
   firebase_auth_web:
+  http:
+  flutter_chat_ui:
+  image_picker:
+  uuid:
+  intl:
+  file_picker:
+  mime:
+  open_filex:
+  path_provider:
   mailer:
   google_sign_in: ^6.2.1
   shared_preferences:
   provider:
-
+  firebase_dynamic_links: ^5.5.5
 
 dev_dependencies:
   flutter_test:
@@ -68,7 +67,6 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^3.0.0
 
-
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -79,7 +77,8 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
-
+  assets :
+    - assets/img/
   fonts:
     - family: Pretendard
       fonts:
