@@ -1,10 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 class AddScheduleScreen extends StatefulWidget {
+  final DateTime selectedDate; // 이전 화면에서 전달된 선택된 날짜
+
+  AddScheduleScreen({required this.selectedDate});
+
   @override
-  _AddScheduleScreenState createState() => _AddScheduleScreenState();
+  _AddScheduleScreenState createState() => _AddScheduleScreenState(selectedDate: selectedDate);
 }
 
 class _AddScheduleScreenState extends State<AddScheduleScreen> {
@@ -12,7 +16,11 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
 
   late TextEditingController _titleController; // 일정 제목 입력 필드 컨트롤러
   late TextEditingController _descriptionController; // 일정 설명 입력 필드 컨트롤러
-  DateTime _selectedDate = DateTime.now(); // 선택된 날짜, 초기값은 현재 날짜로 설정
+  late DateTime _selectedDate; // 선택된 날짜, 초기값은 현재 날짜로 설정
+
+  _AddScheduleScreenState({required DateTime selectedDate}) {
+    _selectedDate = selectedDate;
+  }
 
   @override
   void initState() {
@@ -74,7 +82,13 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Schedule'), // 화면 제목 표시
+        title: Text('일정 추가하기'), // 화면 제목 표시
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back), // 뒤로가기 아이콘
+          onPressed: () {
+            Navigator.pop(context); // 화면 되돌아가기
+          },
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -118,19 +132,19 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
               Row(
                 children: [
                   Text(
-                    "Selected Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}",
+                    "선택된 날짜 : ${DateFormat('yyyy-MM-dd').format(_selectedDate)}",
                   ), // 선택된 날짜 텍스트 표시
                   SizedBox(width: 16), // 위젯 간 간격 설정
                   ElevatedButton(
                     onPressed: () => _selectDate(context), // 버튼 클릭 시 날짜 선택
-                    child: Text('Select date'), // 버튼 텍스트 설정
+                    child: Text('날짜 선택'), // 버튼 텍스트 설정
                   ),
                 ],
               ),
               SizedBox(height: 16), // 위젯 간 간격 설정
               ElevatedButton(
                 onPressed: _saveSchedule, // 일정 저장 버튼 클릭 시 저장 메서드 호출
-                child: Text('Save Schedule'), // 버튼 텍스트 설정
+                child: Text('저장'), // 버튼 텍스트 설정
               ),
             ],
           ),

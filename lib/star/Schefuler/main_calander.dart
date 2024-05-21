@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
+
 
 class MainCalendar extends StatelessWidget {
-  final void Function(DateTime, DateTime) onDaySelected;
-  final DateTime selectedDate;
+  final void Function(DateTime, DateTime) onDaySelected; // 날짜 선택 시 실행할 콜백 함수
+  final DateTime selectedDate; // 선택된 날짜
 
   MainCalendar({
     required this.onDaySelected,
@@ -13,10 +16,10 @@ class MainCalendar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TableCalendar(
-      onDaySelected: onDaySelected, // 날짜 선택시 실행할 함수
+      onDaySelected: onDaySelected, // 날짜 선택 시 실행할 함수
 
-      selectedDayPredicate: (date) => // 선택할 날짜를 구분할 로직
-          date.year == selectedDate.year &&
+      selectedDayPredicate: (date) => // 선택할 날짜를 구분할 조건
+      date.year == selectedDate.year &&
           date.month == selectedDate.month &&
           date.day == selectedDate.day,
 
@@ -32,16 +35,16 @@ class MainCalendar extends StatelessWidget {
         ),
       ),
       calendarStyle: CalendarStyle(
-        isTodayHighlighted: true,
+        isTodayHighlighted: true, // 오늘 날짜 강조 표시
         defaultDecoration: BoxDecoration( // 기본 날짜 스타일
           borderRadius: BorderRadius.circular(6.0),
           color: Color.fromRGBO(255, 255, 255, 1),
-          shape: BoxShape.rectangle, // 명확하게 rectangle 설정
+          shape: BoxShape.rectangle, // 명확하게 직사각형 설정
         ),
         weekendDecoration: BoxDecoration( // 주말 날짜 스타일
           borderRadius: BorderRadius.circular(6.0),
           color: Color.fromRGBO(255, 255, 255, 1),
-          shape: BoxShape.rectangle, // 명확하게 rectangle 설정
+          shape: BoxShape.rectangle, // 명확하게 직사각형 설정
         ),
         selectedDecoration: BoxDecoration( // 선택된 날짜 스타일
           borderRadius: BorderRadius.circular(6.0),
@@ -49,7 +52,7 @@ class MainCalendar extends StatelessWidget {
             color: Colors.blue,
             width: 1.0,
           ),
-          shape: BoxShape.rectangle, // 명확하게 rectangle 설정
+          shape: BoxShape.rectangle, // 명확하게 직사각형 설정
         ),
         defaultTextStyle: TextStyle( // 기본 글꼴
           fontWeight: FontWeight.w600,
@@ -64,6 +67,9 @@ class MainCalendar extends StatelessWidget {
           color: Colors.lightGreen,
         ),
       ),
+      //한국어로 변경
+      locale: 'ko_KR',
+
     );
   }
 }

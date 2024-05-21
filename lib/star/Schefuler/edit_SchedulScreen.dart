@@ -1,101 +1,145 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+import 'package:wooki/star/Schefuler/get_Schedul.dart'; // ScheduleService 클래스가 있는 파일 경로를 지정하세요.
 
 class EditScheduleScreen extends StatefulWidget {
-  final Map<String, dynamic> schedule; // 수정할 일정 정보를 저장하는 맵
-  final String documentId; // 수정할 일정의 문서 ID
+  final Map<String, dynamic> schedule;
 
-  const EditScheduleScreen({Key? key, required this.schedule, required this.documentId}) : super(key: key);
+  EditScheduleScreen({required this.schedule});
 
   @override
   _EditScheduleScreenState createState() => _EditScheduleScreenState();
 }
 
 class _EditScheduleScreenState extends State<EditScheduleScreen> {
-  late TextEditingController _titleController; // 제목을 입력받는 텍스트 필드 컨트롤러
-  late TextEditingController _descriptionController; // 내용을 입력받는 텍스트 필드 컨트롤러
+  final _formKey = GlobalKey<FormState>();
+  late String _title; // 일정 제목을 저장하는 변수
+  late String _description; // 일정 설명을 저장하는 변수
+  late DateTime _selectedDate; // 선택된 날짜를 저장하는 변수
 
   @override
   void initState() {
     super.initState();
-    // 수정할 일정의 제목과 내용으로 텍스트 필드 컨트롤러 초기화
-    if (widget.schedule != null && widget.schedule['title'] != null) {
-      _titleController = TextEditingController(text: widget.schedule['title']);
-    }
-    if (widget.schedule != null && widget.schedule['description'] != null) {
-      _descriptionController = TextEditingController(text: widget.schedule['description']);
+    // 위젯 초기화 시에 스케줄 정보를 이용하여 필드 초기화
+    _title = widget.schedule['title'];
+    _description = widget.schedule['description'];
+    _selectedDate = (widget.schedule['date'] as Timestamp)
+        .toDate(); // Timestamp를 DateTime으로 변환
+  }
+
+  // 일정을 저장하는 메서드
+  void _saveSchedule() {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      // ScheduleService 클래스를 사용하여 데이터를 업데이트
+      ScheduleService()
+          .updateSchedule(widget.schedule['documentId'], _title, _description,
+              _selectedDate)
+          .then((_) {
+        Navigator.pop(context); // 일정 수정 화면 닫기
+      }).catchError((error) {
+        // 오류 발생 시 처리
+        print('Failed to update schedule: $error');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('일정 수정에 실패했습니다. 다시 시도해 주세요.')),
+        );
+      });
     }
   }
 
+  // 날짜 선택 다이얼로그를 띄우는 메서드
+  void _pickDate() async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
 
-  // 일정 업데이트 함수
-  Future<void> _updateSchedule(String updatedTitle, String updatedDescription) async {
-    try {
-      if (updatedTitle != null && updatedDescription != null) {
-        // Firestore 컬렉션에서 해당 문서를 찾아 업데이트
-        await FirebaseFirestore.instance.collection('schedules').doc(widget.documentId).update({
-          'title': updatedTitle, // 제목 업데이트
-          'description': updatedDescription, // 내용 업데이트
-          // 추가적인 필드가 있다면 여기에 추가할 수 있습니다.
-        });
-        // 업데이트 성공 시 메시지 출력
-        print('Schedule updated successfully');
-      } else {
-        // 수정된 정보가 null이면 업데이트하지 않음
-        print('Updated title or description is null. Not updating schedule.');
-      }
-    } catch (error) {
-      // 업데이트 실패 시 에러 처리
-      print('Failed to update schedule: $error');
+    // 사용자가 날짜를 선택한 경우 상태를 업데이트하여 선택한 날짜를 반영
+    if (pickedDate != null && pickedDate != _selectedDate) {
+      setState(() {
+        _selectedDate = pickedDate;
+      });
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Schedule'),
+        // 아래 주석을 제거하고, 위의 title을 주석 처리하여 제목을 가운데 정렬하세요.
+        // 여기서는 제목 위젯을 별도로 추가하고 가운데 정렬합니다.
+        title: SizedBox(
+          width: double.infinity, // 화면 전체 너비를 사용하여 가운데 정렬
+          child: Text(
+            '일정 수정', // 앱바 제목
+            textAlign: TextAlign.center, // 가운데 정렬
+          ),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back), // 뒤로가기 아이콘
+          onPressed: () {
+            Navigator.pop(context); // 뒤로가기 버튼 클릭 시 화면 닫기
+          },
+        ),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: _titleController,
-              decoration: InputDecoration(labelText: 'Title'),
-            ),
-            SizedBox(height: 16.0),
-            TextField(
-              controller: _descriptionController,
-              decoration: InputDecoration(labelText: 'Description'),
-            ),
-            SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: () {
-                // 수정된 정보 저장하기
-                String updatedTitle = _titleController.text;
-                String updatedDescription = _descriptionController.text;
-                // 일정 업데이트 함수 호출
-                _updateSchedule(updatedTitle, updatedDescription);
-                // 수정 완료 후 화면 닫기
-                Navigator.pop(context);
-              },
-              child: Text('Save'),
-            ),
-          ],
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                initialValue: _title,
+                decoration: InputDecoration(labelText: '제목'),
+                onSaved: (value) {
+                  _title = value!; // 입력된 제목을 저장
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return '제목을 입력하세요'; // 제목이 비어있는 경우 에러 반환
+                  }
+                  return null; // 유효성 검사 통과
+                },
+              ),
+              TextFormField(
+                initialValue: _description,
+                decoration: InputDecoration(labelText: '내용'),
+                onSaved: (value) {
+                  _description = value!; // 입력된 내용을 저장
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return '내용을 입력하세요'; // 내용이 비어있는 경우 에러 반환
+                  }
+                  return null; // 유효성 검사 통과
+                },
+              ),
+              SizedBox(height: 20), // 위젯 간 간격 설정
+              Row(
+                children: [
+                  Text(
+                    "선택된 날짜 : ${DateFormat('yyyy-MM-dd').format(_selectedDate)}",
+                  ),
+                  SizedBox(width: 20), // 위젯 간 간격 설정
+                  ElevatedButton(
+                    onPressed: _pickDate,
+                    child: Text('날짜 선택'),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 20), // 위젯 간 간격 설정
+              ElevatedButton(
+                onPressed: _saveSchedule, // 저장 버튼 클릭 시 _saveSchedule 메서드 호출
+                child: Text('저장'),
+              ),
+            ],
+          ),
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    // 사용한 텍스트 필드 컨트롤러들을 해제하여 메모리 누수 방지
-    _titleController.dispose();
-    _descriptionController.dispose();
-    super.dispose();
   }
 }
