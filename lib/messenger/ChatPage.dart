@@ -13,9 +13,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({required this.userId, required this.peerId, super.key});
+  const ChatPage({required this.userId, required this.peerId, required this.chatRoomId, super.key});
   final String userId;
   final String peerId;
+  final String chatRoomId; // chatRoomId 추가
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -35,7 +36,10 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _addMessage(types.Message message) {
-    FirebaseFirestore.instance.collection('messages').add(message.toJson());
+    FirebaseFirestore.instance.collection('CHATROOMS')
+        .doc(widget.chatRoomId)
+        .collection('MESSAGES')
+        .add(message.toJson());
   }
 
   void _handleSendPressed(types.PartialText message) {
@@ -185,7 +189,9 @@ class _ChatPageState extends State<ChatPage> {
 
   void _loadMessages() {
     FirebaseFirestore.instance
-        .collection('messages')
+        .collection('CHATROOMS')
+        .doc(widget.chatRoomId)
+        .collection('MESSAGES')
         .orderBy('createdAt', descending: true)
         .snapshots()
         .listen((snapshot) {
@@ -202,7 +208,18 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text(widget.peerId), // 메시지를 받는 사용자의 userId를 제목에 표시
+      title: FutureBuilder<DocumentSnapshot>(
+        future: FirebaseFirestore.instance.collection('USERLIST').doc(widget.peerId).get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Text('로딩 중...');
+          }
+          if (!snapshot.hasData) {
+            return const Text('알 수 없음');
+          }
+          return Text(snapshot.data!['name']);
+        },
+      ),
       backgroundColor: const Color.fromRGBO(255, 253, 239, 1),
     ),
     body: NotificationListener<ScrollNotification>(
@@ -216,8 +233,8 @@ class _ChatPageState extends State<ChatPage> {
         showUserNames: true,
         user: _user,
         l10n: const ChatL10nKo(
-          inputPlaceholder: '메시지 입력',
-          emptyChatPlaceholder: '주고받은 메시지가 없어요!',
+          inputPlaceholder: '대화를 입력하세요...',
+          emptyChatPlaceholder: '주고받은 대화가 없어요!',
         ),
         theme: const DefaultChatTheme(
           inputBackgroundColor: Colors.white,

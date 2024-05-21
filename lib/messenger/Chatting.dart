@@ -105,7 +105,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _addMessage(types.Message message) {
-    FirebaseFirestore.instance.collection('messages').add(message.toJson());
+    FirebaseFirestore.instance.collection('MESSAGES').add(message.toJson());
   }
 
   void _handleSendPressed(types.PartialText message) {
