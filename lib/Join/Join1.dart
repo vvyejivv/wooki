@@ -307,11 +307,6 @@ class _JoinState extends State<JoinEx2> {
                         ),
                       ),
                     ],
-                    // Text(
-                    //   '가입한 날짜: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(FieldValue.serverTimestamp().toDate())}',
-                    //   style: TextStyle(fontSize: 16),
-                    // ),
-
                     SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: _register,
