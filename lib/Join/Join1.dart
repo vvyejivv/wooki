@@ -3,9 +3,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+
 
 class JoinEx2 extends StatefulWidget {
-  const JoinEx2({Key? key}); // super.key -> Key? key로 수정
+  const JoinEx2({Key? key});
 
   @override
   _JoinState createState() => _JoinState();
@@ -18,8 +20,24 @@ class _JoinState extends State<JoinEx2> {
   final TextEditingController _pwd1 = TextEditingController();
   final TextEditingController _email = TextEditingController();
   final TextEditingController _phone = TextEditingController();
+  final TextEditingController _todayDateController = TextEditingController();
+
   final TextEditingController _verificationCodeController =
       TextEditingController();
+
+
+  @override
+  void initState() {
+    super.initState();
+    _setTodayDate();
+  }
+
+  void _setTodayDate() {
+    final Timestamp timestamp = FieldValue.serverTimestamp() as Timestamp;
+    final DateTime dateTime = timestamp.toDate();
+    String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
+    _todayDateController.text = formattedDate;
+  }
 
   String? _generatedCode;
   bool _isSendingSMS = false;
@@ -38,29 +56,24 @@ class _JoinState extends State<JoinEx2> {
       return;
     }
 
-    // 비밀번호 확인
     if (_pwd.text.isEmpty || _pwd.text != _pwd1.text) {
       _showSnackBar('비밀번호를 확인하세요.');
       return;
     }
 
-    // 이메일 형식 확인
     if (!_isValidEmail(_email.text)) {
       _showSnackBar('올바른 이메일 주소를 입력하세요.');
       return;
     }
 
-
-
-
-
-
     try {
+
       await _fs.collection('USERLIST').add({
         'name': _name.text,
         'pwd': _pwd.text,
         'email': _email.text,
         'phone': _phone.text,
+        'todayDate': FieldValue.serverTimestamp(),
       });
 
       _showSnackBar('가입되었음!!');
@@ -75,7 +88,6 @@ class _JoinState extends State<JoinEx2> {
     }
   }
 
-// 이메일 형식 확인 함수
   bool _isValidEmail(String email) {
     String emailRegex = r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$';
     return RegExp(emailRegex).hasMatch(email);
@@ -97,8 +109,8 @@ class _JoinState extends State<JoinEx2> {
     });
 
     Map<String, String> data = {
-      'to': _phone.text, // 전달받은 전화번호 사용
-      'from': '01046548947', // 고정
+      'to': _phone.text,
+      'from': '01046548947',
       'text': '인증 코드: $code'
     };
 
@@ -123,7 +135,7 @@ class _JoinState extends State<JoinEx2> {
   }
 
   void verifyCode() {
-    String enteredCode = _verificationCodeController.text.trim(); // 공백 제거
+    String enteredCode = _verificationCodeController.text.trim();
     print("enteredCode ==> $enteredCode");
     print("_generatedCode ==> $_generatedCode");
     if (enteredCode.isEmpty) {
@@ -141,7 +153,6 @@ class _JoinState extends State<JoinEx2> {
     }
   }
 
-
   String _generateRandomCode() {
     const chars = '0123456789';
     final random = Random();
@@ -152,7 +163,6 @@ class _JoinState extends State<JoinEx2> {
   void _showSnackBar(String message) {
     print(message);
     if (message.isNotEmpty) {
-      // 메시지가 비어있지 않은 경우에만 스낵바를 표시합니다.
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
       );
@@ -160,7 +170,6 @@ class _JoinState extends State<JoinEx2> {
   }
 
   void _checkEmail() async {
-    // 이메일이 비어있는지 확인
     if (_email.text.isEmpty) {
       _showSnackBar('이메일을 입력하세요.');
       return;
@@ -186,103 +195,143 @@ class _JoinState extends State<JoinEx2> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(title: Text("회원가입")),
-        body: SingleChildScrollView(
-          child: Center(
-            child: Padding(
-              padding: EdgeInsets.all(20.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextField(
-                    controller: _email,
-                    decoration: InputDecoration(
-                      labelText: "아이디",
-                      hintText: "이메일을 입력하세요", // 빈칸일 때 나타날 안내 메시지
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Row(
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          _checkEmail(); // _checkEmail 함수 호출
-                        },
-                        child: Text('중복 확인'),
-                      ),
-                      SizedBox(height: 20), // 여백을 추가하여 버튼과 텍스트 사이의 간격 조정
-                    ],
-                  ),
-                  TextField(
-                    controller: _name,
-                    decoration: InputDecoration(
-                      labelText: "이름",
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  TextField(
-                    controller: _pwd,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: "비밀번호",
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  TextField(
-                    controller: _pwd1,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: "비밀번호 확인",
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  TextField(
-                    controller: _phone,
-                    decoration: InputDecoration(
-                      labelText: "전화번호",
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Row(
-                    children: [
-                      ElevatedButton(
-                        onPressed: sendSMS,
-                        child: Text('인증'),
-                      ),
-                      SizedBox(width: 20),
-                    ],
-                  ),
-                  if (_isVerificationSent) ...[
-                    SizedBox(height: 20),
+        backgroundColor: Color.fromARGB(255, 255, 253, 239),
+        appBar: AppBar(
+          title: Text("회원가입"),
+          backgroundColor: Color.fromARGB(255, 255, 253, 239),
+        ),
+        body: Container(
+          child: SingleChildScrollView(
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
                     TextField(
-                      controller: _verificationCodeController,
+                      controller: _email,
                       decoration: InputDecoration(
-                        labelText: "인증 코드 입력",
+                        labelText: "아이디",
+                        hintText: "이메일을 입력하세요",
                         border: OutlineInputBorder(),
                       ),
                     ),
                     SizedBox(height: 20),
+                    Row(
+                      children: [
+                        ElevatedButton(
+                          onPressed: _checkEmail,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color.fromRGBO(
+                                255, 219, 28, 1), // RGB 값으로 배경색 지정
+                          ),
+                          child: Text(
+                            '중복 확인',
+                            style: TextStyle(
+                                color: Colors.black), // 텍스트 색상을 검정색으로 변경
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20), // 여백 추가
+                    TextField(
+                      controller: _name,
+                      decoration: InputDecoration(
+                        labelText: "이름",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    TextField(
+                      controller: _pwd,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        labelText: "비밀번호",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    TextField(
+                      controller: _pwd1,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        labelText: "비밀번호 확인",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    TextField(
+                      controller: _phone,
+                      decoration: InputDecoration(
+                        labelText: "전화번호",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Row(
+                      children: [
+                        ElevatedButton(
+                          onPressed: sendSMS,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color.fromRGBO(
+                                255, 219, 28, 1), // RGB 값으로 배경색 지정
+                          ),
+                          child: Text(
+                            '인증',
+                            style: TextStyle(
+                                color: Colors.black), // 텍스트 색상을 검정색으로 변경
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_isVerificationSent) ...[
+                      SizedBox(height: 20),
+                      TextField(
+                        controller: _verificationCodeController,
+                        decoration: InputDecoration(
+                          labelText: "인증 코드 입력",
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: verifyCode,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color.fromRGBO(
+                              255, 219, 28, 1), // RGB 값으로 배경색 지정
+                        ),
+                        child: Text(
+                          '인증 완료',
+                          style: TextStyle(
+                              color: Colors.black), // 텍스트 색상을 검정색으로 변경
+                        ),
+                      ),
+                    ],
+                    // Text(
+                    //   '가입한 날짜: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(FieldValue.serverTimestamp().toDate())}',
+                    //   style: TextStyle(fontSize: 16),
+                    // ),
+
+                    SizedBox(height: 20),
                     ElevatedButton(
-                      onPressed: verifyCode,
-                      child: Text('인증 완료'),
+                      onPressed: _register,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            Color.fromRGBO(255, 219, 28, 1), // RGB 값으로 배경색 지정
+                      ),
+                      child: Text(
+                        '사용자 가입!',
+                        style:
+                            TextStyle(color: Colors.black), // 텍스트 색상을 검정색으로 변경
+                      ),
                     ),
+                    SizedBox(height: 20),
+                    if (_snackBarMessage.isNotEmpty)
+                      SnackBar(
+                        content: Text(_snackBarMessage),
+                      ),
                   ],
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _register,
-                    child: Text("사용자 가입!"),
-                  ),
-                  SizedBox(height: 20),
-                  if (_snackBarMessage.isNotEmpty)
-                    SnackBar(
-                      content: Text(_snackBarMessage),
-                    ),
-                ],
+                ),
               ),
             ),
           ),
