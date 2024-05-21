@@ -46,6 +46,15 @@ dependencies:
   shared_preferences:
   provider:
   firebase_dynamic_links: ^5.5.5
+  http:
+  flutter_chat_ui:
+  image_picker:
+  uuid:
+  intl:
+  file_picker:
+  mime:
+  open_filex:
+  path_provider:
 
 dev_dependencies:
   flutter_test:
