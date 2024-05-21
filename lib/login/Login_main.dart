@@ -15,50 +15,58 @@ import 'package:kakao_flutter_sdk_common/kakao_flutter_sdk_common.dart';
 import 'package:provider/provider.dart';
 import 'package:wooki/main.dart';
 import 'Session.dart';
+import 'package:wooki/FamilyAuth/Auth_main.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SharedPreferences.getInstance();
+  await FirebaseAuth.instance.signOut(); //로그아웃
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  // 웹 환경에서 카카오 로그인을 정상적으로 완료하려면 runApp() 호출 전 아래 메서드 호출 필요
-  WidgetsFlutterBinding.ensureInitialized();
 
-  // runApp() 호출 전 Flutter SDK 초기화
   KakaoSdk.init(
     nativeAppKey: '62b9387218f4e9061c4d487ab5d728f9',
     javaScriptAppKey: '4ad5aa841d079ff244bbdbbad04eae08',
   );
-  runApp(const LoginApp());
+
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => Session(),
+      child: const LoginApp(),
+    ),
+  );
 }
 
-class LoginApp extends StatefulWidget {
+class LoginApp extends StatelessWidget {
   const LoginApp({super.key});
 
   @override
-  State<LoginApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<LoginApp> {
-  @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: MyWidget());
+    return MaterialApp(
+      home: SocialLogin(),
+    );
   }
 }
 
-class MyWidget extends StatefulWidget {
-  const MyWidget({super.key});
+class SocialLogin extends StatefulWidget {
+  const SocialLogin({super.key});
 
   @override
-  State<MyWidget> createState() => _MyWidgetState();
+  State<SocialLogin> createState() => _SocialLogin();
 }
 
-class _MyWidgetState extends State<MyWidget> {
+class _SocialLogin extends State<SocialLogin> {
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
 
+  @override
+  void initState() {
+    super.initState();
+    // 위젯이 처음으로 생성될 때 세션 정보를 삭제합니다.
+    Provider.of<Session>(context, listen: false).logout();
+  }
 
-  //네이버 로그인
+  // 네이버 로그인
   void _naverLogin() async {
     try {
       final NaverLoginResult res = await FlutterNaverLogin.logIn();
@@ -85,7 +93,7 @@ class _MyWidgetState extends State<MyWidget> {
     }
   }
 
-  //구글 로그인
+  // 구글 로그인
   Future<void> signInWithGoogle() async {
     try {
       // 사용자가 로그인하는 것을 기다림
@@ -93,7 +101,7 @@ class _MyWidgetState extends State<MyWidget> {
 
       // 로그인한 사용자의 정보를 얻음
       final GoogleSignInAuthentication? googleAuth =
-          await googleUser?.authentication;
+      await googleUser?.authentication;
 
       // 새로운 자격 증명을 생성함
       final credential = GoogleAuthProvider.credential(
@@ -103,7 +111,7 @@ class _MyWidgetState extends State<MyWidget> {
 
       // 로그인 성공 시 UserCredential을 반환함
       final userCredential =
-          await FirebaseAuth.instance.signInWithCredential(credential);
+      await FirebaseAuth.instance.signInWithCredential(credential);
 
       // 사용자의 이메일 주소에 접근함
       final userEmail = userCredential.user?.email;
@@ -119,7 +127,7 @@ class _MyWidgetState extends State<MyWidget> {
     }
   }
 
-  //카카오 로그인
+  // 카카오 로그인
   Future<void> _kakaoLogin() async {
     // 카카오톡 실행 가능 여부 확인
     // 카카오톡 실행이 가능하면 카카오톡으로 로그인, 아니면 카카오계정으로 로그인
@@ -142,7 +150,6 @@ class _MyWidgetState extends State<MyWidget> {
 
         // 사용자 정보를 가져온 후에 다음 페이지로 이동
         _userCheck(userEmail);
-
       } catch (error) {
         print('카카오톡으로 로그인 실패 $error');
 
@@ -170,7 +177,6 @@ class _MyWidgetState extends State<MyWidget> {
 
           // 사용자 정보를 가져온 후에 다음 페이지로 이동
           _userCheck(userEmail);
-
         } catch (error) {
           print('카카오계정으로 로그인 실패 $error');
         }
@@ -194,21 +200,26 @@ class _MyWidgetState extends State<MyWidget> {
 
         // 사용자 정보를 가져온 후에 다음 페이지로 이동
         _userCheck(userEmail);
-
       } catch (error) {
         print('카카오계정으로 로그인 실패 $error');
       }
     }
   }
 
-
   void _userCheck(email) async {
-    final userDocs =
-        await _fs.collection('USERLIST').where('email', isEqualTo: email).get();
+    final userDocs = await _fs.collection('USERLIST').where('email', isEqualTo: email).get();
     print(email);
     if (userDocs.docs.isNotEmpty) {
+      var userData = userDocs.docs.first.data();
+      var session = Provider.of<Session>(context, listen: false);
+      session.login(userData['name'], userData['email'], userData['phone']);
+      // 사용자 정보가 세션에 저장된 후에 네비게이션을 실행
+      // Navigator.push(
+      //     context, MaterialPageRoute(builder: (context) => LogoutApp())
+      // );
       Navigator.push(
-          context, MaterialPageRoute(builder: (context) => LogoutApp()));
+          context, MaterialPageRoute(builder: (context) => FamilyAuth())
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('오류')),
@@ -216,19 +227,67 @@ class _MyWidgetState extends State<MyWidget> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFFFFFDEF),
+        title: Container(
+          margin: EdgeInsets.only(top: 60, bottom: 50),
+          child: Image.asset('assets/img/wooki_logo.png'),
+        ),
       ),
       body: Container(
         color: Color(0xFFFFFDEF),
         padding: const EdgeInsets.all(18.0),
-        child: Column(
+        child: ListView(
           children: [
             UserLogin(),
+            SizedBox(height: 10),
+            Container(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    child: GestureDetector(
+                      onTap: (){},
+                      child: Text(
+                          "아이디 찾기",
+                        style: TextStyle(
+                            fontFamily: 'Pretendard-Regular',
+                            fontSize: 14,
+                            color: Color(0xFF4E3E36),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    child: Text(
+                        "  |  ",
+                      style: TextStyle(
+                        fontFamily: 'Pretendard-Regular',
+                        fontSize: 14,
+                        color: Color(0xFFECEAE9),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    child: GestureDetector(
+                      onTap: (){},
+                      child: Text(
+                          "비밀번호 찾기",
+                        style: TextStyle(
+                          fontFamily: 'Pretendard-Regular',
+                          fontSize: 14,
+                          color: Color(0xFF4E3E36),
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ),
+            SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -264,7 +323,6 @@ class _MyWidgetState extends State<MyWidget> {
   }
 }
 
-
 class UserLogin extends StatefulWidget {
   @override
   State<UserLogin> createState() => _UserLoginState();
@@ -278,87 +336,154 @@ class _UserLoginState extends State<UserLogin> {
   void _login() async {
     String userEmail = _userEmail.text;
     String userPwd = _userPwd.text;
-    final userDocs = await _fs
-        .collection('USERLIST')
-        .where('email', isEqualTo: userEmail)
-        .where('pwd', isEqualTo: userPwd)
-        .get();
 
-    if (userDocs.docs.isNotEmpty) {
-      var session = Provider.of<Session>(context, listen: false);
-      var users = userDocs.docs.first.data();
-      session.login(users['name'], users['email'], users['phone']);
+    try {
+      final userDocs = await _fs
+          .collection('USERLIST')
+          .where('email', isEqualTo: userEmail)
+          .where('pwd', isEqualTo: userPwd)
+          .get();
 
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => MainPage()));
-    } else {
+      if (userDocs.docs.isNotEmpty) {
+        var userData = userDocs.docs.first.data();
+        print('유저 데이터: $userData');
+
+        var session = Provider.of<Session>(context, listen: false);
+        session.login(userData['name'], userData['email'], userData['phone']);
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => FamilyAuth()));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('이메일 또는 비밀번호를 다시 확인해주세요.')),
+        );
+      }
+    } catch (e) {
+      print('로그인 오류: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('이메일 또는 패스워드를 다시 확인해주세요.')),
+        SnackBar(content: Text('로그인 중 오류가 발생했습니다. 다시 시도해주세요.')),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          Container(
-            margin: EdgeInsets.only(bottom: 20, top: 40),
-            padding: EdgeInsets.all(20),
-            child: Image.asset(
-              'assets/img/wooki2.png',
-              width: 150,
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: TextField(
-              controller: _userEmail,
-              decoration: InputDecoration(
-                hintText: '이메일을 입력해주세요.',
-                border: InputBorder.none,
+    return Column(
+      children: [
+        Container(
+          margin: EdgeInsets.only(bottom: 20, top: 40),
+          child: Column(
+            children: [
+              Container(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "우끼에 오신 것을 환영합니다!",
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF3A281F),
+                    fontFamily: 'Pretendard-Medium',
+                    height: 1.6,
+                  ),
+                ),
               ),
-            ),
-          ),
-          SizedBox(height: 10),
-          Container(
-            padding: EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: TextField(
-              controller: _userPwd,
-              obscureText: true,
-              decoration: InputDecoration(
-                hintText: '비밀번호를 입력해주세요.',
-                border: InputBorder.none,
+              Container(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "서비스 이용을 위해 로그인 바랍니다.",
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF3A281F),
+                    fontFamily: 'Pretendard-Medium',
+                    height: 1.6,
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-          SizedBox(height: 15),
-          ElevatedButton(
-            onPressed: _login,
-            child: Text('로그인'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFFFE458),
-              foregroundColor: Color(0xFF3A281F),
-              minimumSize: Size(double.infinity, 50),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(5),
+        ),
+        Container(
+          padding: EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: TextField(
+            controller: _userEmail,
+            decoration: InputDecoration(
+              hintText: '이메일을 입력해주세요.',
+              hintStyle: TextStyle(
+                fontFamily: 'Pretendard-Regular',
+                fontSize: 14,
+                color: Color(0xFF6D605A),
               ),
+              border: InputBorder.none,
             ),
           ),
-          SizedBox(height: 30),
-        ],
-      ),
+        ),
+        SizedBox(height: 10),
+        Container(
+          padding: EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: TextField(
+            controller: _userPwd,
+            obscureText: true,
+            decoration: InputDecoration(
+              hintText: '비밀번호를 입력해주세요.',
+              hintStyle: TextStyle(
+                fontFamily: 'Pretendard-Regular',
+                fontSize: 14,
+                color: Color(0xFF6D605A),
+              ),
+              border: InputBorder.none,
+            ),
+          ),
+        ),
+        SizedBox(height: 15),
+        ElevatedButton(
+          onPressed: _login,
+          child: Text(
+            '로그인',
+            style: TextStyle(
+                fontFamily: 'Pretendard-SemiBold',
+                fontSize: 15,
+                color: Color(0xFF3A281F),
+                fontWeight: FontWeight.bold),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFFFFE458),
+            foregroundColor: Color(0xFF3A281F),
+            minimumSize: Size(double.infinity, 50),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+          ),
+        ),
+        SizedBox(height: 10),
+        ElevatedButton(
+          onPressed: _login,
+          child: Text(
+            '회원가입',
+            style: TextStyle(
+                fontFamily: 'Pretendard-SemiBold',
+                fontSize: 15,
+                color: Colors.white,
+                fontWeight: FontWeight.bold),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFF6D605A),
+            minimumSize: Size(double.infinity, 50),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
-
-

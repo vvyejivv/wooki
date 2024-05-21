@@ -4,6 +4,7 @@ import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'Login_main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wooki/main.dart';
 
 void main() {
   runApp(const LogoutApp());
@@ -83,6 +84,10 @@ class LogoutWidget extends StatelessWidget {
             ElevatedButton(
               onPressed: () => _kakaoLogout(context),
               child: Text("카카오 로그아웃"),
+            ),
+            ElevatedButton(
+              onPressed: () => MainPage(),
+              child: Text("메인"),
             )
           ],
         ),
