@@ -25,24 +25,28 @@ class LoginPage extends StatelessWidget {
 
             final users = snapshot.data!.docs;
 
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: users.map((user) {
-                final name = user['name'];
-                final userId = user.id;
+            return ListView(
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: users.map((user) {
+                    final name = user['name'];
+                    final userId = user.id;
 
-                return ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ChatRoomListPage(userId: userId),
-                      ),
+                    return ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChatRoomListPage(userId: userId),
+                          ),
+                        );
+                      },
+                      child: Text('$name(으)로 로그인'),
                     );
-                  },
-                  child: Text('$name(으)로 로그인'),
-                );
-              }).toList(),
+                  }).toList(),
+                ),
+              ]
             );
           },
         ),

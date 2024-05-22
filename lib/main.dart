@@ -16,5 +16,7 @@ class MainPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MaterialApp(
     home: const LoginPage(),
+    theme: ThemeData(fontFamily: 'Pretendard'),
+    themeMode: ThemeMode.system,
   );
 }
