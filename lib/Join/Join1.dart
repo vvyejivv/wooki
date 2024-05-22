@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-
 class JoinEx2 extends StatefulWidget {
   const JoinEx2({Key? key});
 
@@ -22,9 +21,7 @@ class _JoinState extends State<JoinEx2> {
   final TextEditingController _phone = TextEditingController();
   final TextEditingController _todayDateController = TextEditingController();
 
-  final TextEditingController _verificationCodeController =
-      TextEditingController();
-
+  final TextEditingController _verificationCodeController = TextEditingController();
 
   @override
   void initState() {
@@ -33,8 +30,7 @@ class _JoinState extends State<JoinEx2> {
   }
 
   void _setTodayDate() {
-    final Timestamp timestamp = FieldValue.serverTimestamp() as Timestamp;
-    final DateTime dateTime = timestamp.toDate();
+    final DateTime dateTime = DateTime.now();
     String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
     _todayDateController.text = formattedDate;
   }
@@ -67,13 +63,12 @@ class _JoinState extends State<JoinEx2> {
     }
 
     try {
-
       await _fs.collection('USERLIST').add({
         'name': _name.text,
         'pwd': _pwd.text,
         'email': _email.text,
         'phone': _phone.text,
-        'todayDate': FieldValue.serverTimestamp(),
+        'todayDate': FieldValue.serverTimestamp(), // 서버 타임스탬프 사용
       });
 
       _showSnackBar('가입되었음!!');
@@ -211,7 +206,7 @@ class _JoinState extends State<JoinEx2> {
                     TextField(
                       controller: _email,
                       decoration: InputDecoration(
-                        labelText: "아이디",
+                        labelText: "이메일",
                         hintText: "이메일을 입력하세요",
                         border: OutlineInputBorder(),
                       ),
@@ -312,12 +307,12 @@ class _JoinState extends State<JoinEx2> {
                       onPressed: _register,
                       style: ElevatedButton.styleFrom(
                         backgroundColor:
-                            Color.fromRGBO(255, 219, 28, 1), // RGB 값으로 배경색 지정
+                        Color.fromRGBO(255, 219, 28, 1), // RGB 값으로 배경색 지정
                       ),
                       child: Text(
                         '사용자 가입!',
                         style:
-                            TextStyle(color: Colors.black), // 텍스트 색상을 검정색으로 변경
+                        TextStyle(color: Colors.black), // 텍스트 색상을 검정색으로 변경
                       ),
                     ),
                     SizedBox(height: 20),
