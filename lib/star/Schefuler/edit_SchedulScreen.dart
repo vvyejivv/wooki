@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:wooki/star/Schefuler/get_Schedul.dart'; // ScheduleService 클래스가 있는 파일 경로를 지정하세요.
+
+import 'get_Schedul.dart';
 
 class EditScheduleScreen extends StatefulWidget {
   final Map<String, dynamic> schedule;
 
-  EditScheduleScreen({required this.schedule});
+  EditScheduleScreen({required this.schedule, required void Function(DateTime selectedDate) updateScheduleCount});
 
   @override
   _EditScheduleScreenState createState() => _EditScheduleScreenState();
@@ -34,10 +35,11 @@ class _EditScheduleScreenState extends State<EditScheduleScreen> {
       _formKey.currentState!.save();
       // ScheduleService 클래스를 사용하여 데이터를 업데이트
       ScheduleService()
-          .updateSchedule(widget.schedule['documentId'], _title, _description,
-              _selectedDate)
+          .editSchedule(widget.schedule['documentId'], _title, _description,
+          _selectedDate)
           .then((_) {
-        Navigator.pop(context); // 일정 수정 화면 닫기
+        // 수정된 일정을 저장한 후에 홈 화면으로 돌아가면서 updateScheduleCount 메서드를 호출하여 홈 화면을 갱신합니다.
+        Navigator.pop(context, true); // 일정 수정 화면 닫기, true 값을 전달하여 일정이 수정되었음을 알림
       }).catchError((error) {
         // 오류 발생 시 처리
         print('Failed to update schedule: $error');
@@ -47,6 +49,7 @@ class _EditScheduleScreenState extends State<EditScheduleScreen> {
       });
     }
   }
+
 
   // 날짜 선택 다이얼로그를 띄우는 메서드
   void _pickDate() async {

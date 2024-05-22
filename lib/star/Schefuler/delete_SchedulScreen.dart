@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:wooki/star/Schefuler/get_Schedul.dart'; // ScheduleService 클래스가 있는 파일 경로를 지정하세요.
 
-// 일정 목록을 새로고침하는 메서드
-
-
-// 일정 삭제 메서드
-void deleteSchedule(BuildContext context, DateTime selectedDate, List<Map<String, dynamic>> schedules, int index) {
+void deleteSchedule(BuildContext context, DateTime selectedDate,
+    List<Map<String, dynamic>> schedules, int index, Function updateCallback) {
   String documentId = schedules[index]['documentId']; // 삭제할 일정의 문서 ID
   showDialog(
     context: context,
@@ -23,8 +20,7 @@ void deleteSchedule(BuildContext context, DateTime selectedDate, List<Map<String
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('일정이 삭제되었습니다.')),
                 );
-                // 삭제가 완료되면 화면을 갱신합니다.
-               // updateScheduleCount(selectedDate);
+                updateCallback();
               }).catchError((error) {
                 // 삭제 중 에러가 발생한 경우 처리합니다.
                 print('일정 삭제 실패: $error');

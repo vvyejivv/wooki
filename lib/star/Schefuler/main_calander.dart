@@ -68,7 +68,7 @@ class MainCalendar extends StatelessWidget {
         ),
       ),
       //한국어로 변경
-      locale: 'ko_KR',
+      //locale: 'ko_KR',
 
     );
   }
