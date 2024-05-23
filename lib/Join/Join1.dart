@@ -1,9 +1,12 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+
+import '../firebase_options.dart';
 
 bool isValidName(String name) {
   String nameRegex = r'^[가-힣]{1,5}$|^[a-zA-Z]{1,10}$'; //한글로 1자에서 5자까지 또는 영어로 1자에서 10자까지
@@ -26,15 +29,33 @@ bool _isValidEmail(String email) {
   return RegExp(r'^[a-zA-Z0-9][a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(email);
 }//이메일 주소는 알파벳 또는 숫자로 시작해야 함, @ 다음에 도메인 이름
 
-
-class JoinEx2 extends StatefulWidget {
-  const JoinEx2({Key? key});
-
-  @override
-  _JoinState createState() => _JoinState();
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(const JoinEx2());
 }
 
-class _JoinState extends State<JoinEx2> {
+class JoinEx2 extends StatelessWidget {
+  const JoinEx2({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: JoinScreen(),
+    );
+  }
+}
+
+class JoinScreen extends StatefulWidget {
+  const JoinScreen({Key? key}) : super(key: key);
+
+  @override
+  _JoinScreenState createState() => _JoinScreenState();
+}
+
+class _JoinScreenState extends State<JoinScreen> {
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
   final TextEditingController _name = TextEditingController();
   final TextEditingController _pwd = TextEditingController();
@@ -43,13 +64,11 @@ class _JoinState extends State<JoinEx2> {
 
   void _showSnackBar(BuildContext context, String message) {
     if (message.isNotEmpty) {
-      print(message);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
       );
     }
   }
-
 
   final TextEditingController _phone = TextEditingController();
   final TextEditingController _todayDateController = TextEditingController();
@@ -109,7 +128,7 @@ class _JoinState extends State<JoinEx2> {
     }
 
     if (_pwd.text != _pwd1.text) {
-      _showSnackBar(context,'패스워드가 다릅니다.');
+      _showSnackBar(context,'비밀번호가 다릅니다.');
       return;
     }
 
@@ -125,7 +144,8 @@ class _JoinState extends State<JoinEx2> {
         'email': _email.text,
         'phone': _phone.text,
         'todayDate': FieldValue.serverTimestamp(), // 서버 타임스탬프 사용
-        'imagePath': 'assets/place2.jpg',// 이미지 경로 추가
+        'imagePath': 'assets/place2.jpg', // 이미지 경로 추가
+        'family': false, // family 필드 추가
       });
 
       _showSnackBar(context,'가입되었음!!');
@@ -137,6 +157,7 @@ class _JoinState extends State<JoinEx2> {
       _verificationCodeController.clear();
     } catch (e) {
       _showSnackBar(context,'Error: $e');
+      print('Error adding document: $e'); // 에러 로그 출력
     }
   }
 
@@ -241,180 +262,177 @@ class _JoinState extends State<JoinEx2> {
     return await _fs.collection('USERLIST').where('email', isEqualTo: email).get();
   }
 
-
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
+    return Scaffold(
+      backgroundColor: Color.fromARGB(255, 255, 253, 239),
+      appBar: AppBar(
+        title: Text("회원가입", style: TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.w500)),
         backgroundColor: Color.fromARGB(255, 255, 253, 239),
-        appBar: AppBar(
-          title: Text("회원가입", style: TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.w500)),
-          backgroundColor: Color.fromARGB(255, 255, 253, 239),
-        ),
-        body: Container(
-          child: SingleChildScrollView(
-            child: Center(
-              child: Padding(
-                padding: EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    // TextField(//예전 버튼 따로 있던 코드
-                    //   style: TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.bold),
-                    //   controller: _email,
-                    //   decoration: InputDecoration(
-                    //     labelText: "이메일",
-                    //     hintText: "이메일을 입력하세요",
-                    //     border: OutlineInputBorder(),
-                    //   ),
-                    // ),
-                    // SizedBox(height: 20),
-                    // Row(
-                    //   children: [
-                    //     ElevatedButton(
-                    //       onPressed: _checkEmail,
-                    //       style: ElevatedButton.styleFrom(
-                    //         backgroundColor: Color.fromRGBO(255, 219, 28, 1),
-                    //       ),
-                    //       child: Text(
-                    //         '중복 확인',
-                    //         style: TextStyle(
-                    //             color: Colors.black,
-                    //             fontFamily: 'Pretendard',
-                    //             fontWeight: FontWeight.bold), // 텍스트 색상을 검정색으로 변경
-                    //       ),
-                    //     ),
-                    //   ],
-                    // ),
-                    TextField(
-                      controller: _email,
-                      decoration: InputDecoration(
-                        labelText: "이메일",
-                        hintText: "이메일을 입력하세요",
-                        border: OutlineInputBorder(),
-                        suffixIcon: ElevatedButton(
-                          onPressed: _checkEmail,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color.fromRGBO(255, 219, 28, 1),
-                          ),
-                          child: Text(
-                            '중복 확인',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontFamily: 'Pretendard',
-                              fontWeight: FontWeight.w500,
-                            ),
+      ),
+      body: Container(
+        child: SingleChildScrollView(
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  // TextField(//예전 버튼 따로 있던 코드
+                  //   style: TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.bold),
+                  //   controller: _email,
+                  //   decoration: InputDecoration(
+                  //     labelText: "이메일",
+                  //     hintText: "이메일을 입력하세요",
+                  //     border: OutlineInputBorder(),
+                  //   ),
+                  // ),
+                  // SizedBox(height: 20),
+                  // Row(
+                  //   children: [
+                  //     ElevatedButton(
+                  //       onPressed: _checkEmail,
+                  //       style: ElevatedButton.styleFrom(
+                  //         backgroundColor: Color.fromRGBO(255, 219, 28, 1),
+                  //       ),
+                  //       child: Text(
+                  //         '중복 확인',
+                  //         style: TextStyle(
+                  //             color: Colors.black,
+                  //             fontFamily: 'Pretendard',
+                  //             fontWeight: FontWeight.bold), // 텍스트 색상을 검정색으로 변경
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
+                  TextField(
+                    controller: _email,
+                    decoration: InputDecoration(
+                      labelText: "이메일",
+                      hintText: "이메일을 입력하세요",
+                      border: OutlineInputBorder(),
+                      suffixIcon: ElevatedButton(
+                        onPressed: _checkEmail,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color.fromRGBO(255, 219, 28, 1),
+                        ),
+                        child: Text(
+                          '중복 확인',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontFamily: 'Pretendard',
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
                     ),
-                    SizedBox(height: 20), // 여백 추가
-                    TextField(
-                      style: TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.bold),
-                      controller: _name,
-                      decoration: InputDecoration(
-                        labelText: "이름",
-                        border: OutlineInputBorder(),
-                      ),
+                  ),
+                  SizedBox(height: 20), // 여백 추가
+                  TextField(
+                    style: TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.bold),
+                    controller: _name,
+                    decoration: InputDecoration(
+                      labelText: "이름",
+                      border: OutlineInputBorder(),
                     ),
-                    SizedBox(height: 20),
-                    TextField(
-                      style: TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.bold),
-                      controller: _pwd,
-                      onChanged: (value) {
-                        setState(() {}); // 입력이 변경될 때마다 화면을 다시 그려줌
-                      },
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        labelText: "비밀번호",
-                        border: OutlineInputBorder(),
-                      ),
+                  ),
+                  SizedBox(height: 20),
+                  TextField(
+                    style: TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.bold),
+                    controller: _pwd,
+                    onChanged: (value) {
+                      setState(() {}); // 입력이 변경될 때마다 화면을 다시 그려줌
+                    },
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: "비밀번호",
+                      border: OutlineInputBorder(),
                     ),
-                    SizedBox(height: 20),
-                    TextField(
-                      style: TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.bold),
-                      controller: _pwd1,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        labelText: "비밀번호 확인",
-                        border: OutlineInputBorder(),
-                      ),
+                  ),
+                  SizedBox(height: 20),
+                  TextField(
+                    style: TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.bold),
+                    controller: _pwd1,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: "비밀번호 확인",
+                      border: OutlineInputBorder(),
                     ),
-                    SizedBox(height: 20),
-                    TextField(
-                      style: TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.bold),
-                      controller: _phone,
-                      decoration: InputDecoration(
-                        labelText: "전화번호",
-                        border: OutlineInputBorder(),
-                      ),
+                  ),
+                  SizedBox(height: 20),
+                  TextField(
+                    style: TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.bold),
+                    controller: _phone,
+                    decoration: InputDecoration(
+                      labelText: "전화번호",
+                      border: OutlineInputBorder(),
                     ),
-                    SizedBox(height: 20),
-                    Row(
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            _checkPhoneNumber(); // 전화번호 유효성 확인
-                            if (_phone.text.isNotEmpty && isValidPhoneNumber(_phone.text)) {
-                              sendSMS(); // 유효성 확인 후 SMS 보내기
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color.fromRGBO(
-                                255, 219, 28, 1), // RGB 값으로 배경색 지정
-                          ),
-                          child: Text(
-                            '인증',
-                            style: TextStyle(
-                                color: Colors.black), // 텍스트 색상을 검정색으로 변경
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (_isVerificationSent) ...[
-                      SizedBox(height: 20),
-                      TextField(
-                        style: TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.bold),
-                        controller: _verificationCodeController,
-                        decoration: InputDecoration(
-                          labelText: "인증 코드 입력",
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      SizedBox(height: 20),
+                  ),
+                  SizedBox(height: 20),
+                  Row(
+                    children: [
                       ElevatedButton(
-                        onPressed: verifyCode,
+                        onPressed: () {
+                          _checkPhoneNumber(); // 전화번호 유효성 확인
+                          if (_phone.text.isNotEmpty && isValidPhoneNumber(_phone.text)) {
+                            sendSMS(); // 유효성 확인 후 SMS 보내기
+                          }
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color.fromRGBO(
                               255, 219, 28, 1), // RGB 값으로 배경색 지정
                         ),
                         child: Text(
-                          '인증 완료',
+                          '인증',
                           style: TextStyle(
                               color: Colors.black), // 텍스트 색상을 검정색으로 변경
                         ),
                       ),
                     ],
+                  ),
+                  if (_isVerificationSent) ...[
                     SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: _register,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                        Color.fromRGBO(255, 219, 28, 1), // RGB 값으로 배경색 지정
-                      ),
-                      child: Text(
-                        '사용자 가입!',
-                        style:
-                        TextStyle(color: Colors.black), // 텍스트 색상을 검정색으로 변경
+                    TextField(
+                      style: TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.bold),
+                      controller: _verificationCodeController,
+                      decoration: InputDecoration(
+                        labelText: "인증 코드 입력",
+                        border: OutlineInputBorder(),
                       ),
                     ),
                     SizedBox(height: 20),
-                    if (_snackBarMessage.isNotEmpty)
-                      SnackBar(
-                        content: Text(_snackBarMessage),
+                    ElevatedButton(
+                      onPressed: verifyCode,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color.fromRGBO(
+                            255, 219, 28, 1), // RGB 값으로 배경색 지정
                       ),
+                      child: Text(
+                        '인증 완료',
+                        style: TextStyle(
+                            color: Colors.black), // 텍스트 색상을 검정색으로 변경
+                      ),
+                    ),
                   ],
-                ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _register,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                      Color.fromRGBO(255, 219, 28, 1), // RGB 값으로 배경색 지정
+                    ),
+                    child: Text(
+                      '사용자 가입!',
+                      style:
+                      TextStyle(color: Colors.black), // 텍스트 색상을 검정색으로 변경
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  if (_snackBarMessage.isNotEmpty)
+                    SnackBar(
+                      content: Text(_snackBarMessage),
+                    ),
+                ],
               ),
             ),
           ),
