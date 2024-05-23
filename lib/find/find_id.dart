@@ -8,9 +8,16 @@ import 'package:provider/provider.dart';
 import 'search_id.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // 필수는 아니지만 권장됩니다.
-  await Firebase.initializeApp(); // Firebase 초기화
-  runApp(MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => SearchId()),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -35,13 +42,6 @@ class _FindIDPageState extends State<FindIDPage> {
   final TextEditingController phoneController = TextEditingController();
   final String serverUrl = 'http://10.0.2.2:4000/send-sms';
   bool _isVerified = false; // 인증 상태를 관리하는 변수
-
-  late SearchId searchId; // SearchId 인스턴스를 저장할 변수
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   // 6자리 난수 생성 함수
   int generateSixDigitRandomNumber() {
@@ -78,6 +78,26 @@ class _FindIDPageState extends State<FindIDPage> {
           return AlertDialog(
             title: Container(),
             content: Text("폰번호를 입력하세요."),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text("확인"),
+              ),
+            ],
+          );
+        }
+    );
+  }
+
+  void _showNoDialog(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Container(),
+            content: Text("가입한 번호가 없습니다."),
             actions: [
               TextButton(
                 onPressed: () {
@@ -161,8 +181,7 @@ class _FindIDPageState extends State<FindIDPage> {
 
   @override
   Widget build(BuildContext context) {
-    // final searchId = Provider.of<SearchId>(context);
-    searchId = Provider.of<SearchId>(context, listen: false); // SearchId 인스턴스 초기화
+    final searchId = Provider.of<SearchId>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text('아이디 찾기'),
@@ -191,6 +210,8 @@ class _FindIDPageState extends State<FindIDPage> {
               onPressed: () async {
                 // 아이디 찾기 로직 추가
                 // SearchId searchId = SearchId();
+                // String phone = phoneController.text;
+                // await searchId.search(phone);
                 if (!_isVerified) {
                   String phone = phoneController.text;
                   if (phone.isEmpty){
@@ -201,7 +222,7 @@ class _FindIDPageState extends State<FindIDPage> {
                       print('입력한 폰번호: $phone');
                       sendSMS(context, phone); // SMS 전송 후 다이얼로그 표시
                     } else {
-                      print('가입한 번호가 없습니다.');
+                      _showNoDialog(context);
                     }
                   }
                 } else {
