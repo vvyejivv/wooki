@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wooki/star/Schefuler/main_calander.dart';
 import 'package:wooki/star/Schefuler/add_SchedulScreen.dart';
 import 'package:wooki/star/Schefuler/edit_SchedulScreen.dart';
-import 'package:wooki/star/Schefuler/get_Schedul.dart';
+import 'package:wooki/star/Schefuler/get_Schedule.dart';
 import 'package:wooki/star/Schefuler/today_banner.dart';
 import 'package:wooki/star/Schefuler/delete_SchedulScreen.dart'; // deleteSchedule 함수가 있는 파일 경로
 

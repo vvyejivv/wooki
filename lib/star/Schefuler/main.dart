@@ -10,25 +10,11 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  // 로컬 푸시 알림 초기화
-  await initLocalNotifications();
   initializeDateFormatting('ko_KR', null).then((_) {
     runApp(MyApp());
   });
 }
 
-// 로컬 푸시 알림 초기화 함수
-Future<void> initLocalNotifications() async {
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  FlutterLocalNotificationsPlugin();
-  const AndroidInitializationSettings initializationSettingsAndroid =
-  AndroidInitializationSettings('@mipmap/ic_launcher');
-  final InitializationSettings initializationSettings =
-  InitializationSettings(
-    android: initializationSettingsAndroid,
-  );
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-}
 
 class MyApp extends StatelessWidget {
   @override
