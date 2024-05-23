@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wooki/login/Logout.dart';
 
 
@@ -25,17 +26,27 @@ class EmailAuth extends StatefulWidget {
 
 class _EmailAuthState extends State<EmailAuth> {
   final TextEditingController _myEmailController = TextEditingController();
+  String? email;
 
   @override
   void initState() {
     super.initState();
     // 사용자가 로그인되어 있는지 확인하고 현재 사용자의 이메일을 가져와서 필드에 설정합니다.
-    User? user = FirebaseAuth.instance.currentUser;
-    print(user);
-    if (user != null) {
-      _myEmailController.text = user.email ?? '';
-    }
+    // User? user = FirebaseAuth.instance.currentUser;
+    // print(user);
+    // if (user != null) {
+    //   _myEmailController.text = user.email ?? '';
+    // }
+    _loadEmail();
   }
+
+  Future<void> _loadEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _myEmailController.text = prefs.getString('email') ?? '';
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {

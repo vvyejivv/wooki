@@ -16,11 +16,12 @@ import 'package:provider/provider.dart';
 import 'package:wooki/main.dart';
 import 'Session.dart';
 import 'package:wooki/FamilyAuth/Auth_main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SharedPreferences.getInstance();
-  await FirebaseAuth.instance.signOut(); //로그아웃
+  // await FirebaseAuth.instance.signOut(); //로그아웃
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -213,6 +214,11 @@ class _SocialLogin extends State<SocialLogin> {
       var userData = userDocs.docs.first.data();
       var session = Provider.of<Session>(context, listen: false);
       session.login(userData['name'], userData['email'], userData['phone']);
+
+      // SharedPreferences 세션 처리
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('email', email);
+
       // 사용자 정보가 세션에 저장된 후에 네비게이션을 실행
       // Navigator.push(
       //     context, MaterialPageRoute(builder: (context) => LogoutApp())
@@ -348,8 +354,13 @@ class _UserLoginState extends State<UserLogin> {
         var userData = userDocs.docs.first.data();
         print('유저 데이터: $userData');
 
-        var session = Provider.of<Session>(context, listen: false);
-        session.login(userData['name'], userData['email'], userData['phone']);
+        // var session = Provider.of<Session>(context, listen: false);
+        // session.login(userData['name'], userData['email'], userData['phone']);
+
+        // SharedPreferences 로 처리
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('email', userData['email']);
+
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => FamilyAuth()));
       } else {
