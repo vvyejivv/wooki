@@ -95,6 +95,7 @@ flutter:
         - asset: assets/fonts/Pretendard-Medium.otf
         - asset: assets/fonts/Pretendard-Regular.otf
         - asset: assets/fonts/Pretendard-SemiBold.otf
+        - asset: assets/fonts/Pretendard-Thin.otf
 
 # To add assets to your application, add an assets section, like this:
 # assets:
