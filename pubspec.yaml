@@ -57,7 +57,9 @@ dependencies:
   provider:
   firebase_dynamic_links: ^5.5.5
 
-
+  flutter_local_notifications: ^17.1.2
+  permission_handler:
+  table_calendar: ^3.1.1
 
 dev_dependencies:
   flutter_test:
