@@ -218,14 +218,18 @@ class _SocialLogin extends State<SocialLogin> {
       // SharedPreferences 세션 처리
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('email', email);
-
-      // 사용자 정보가 세션에 저장된 후에 네비게이션을 실행
-      // Navigator.push(
-      //     context, MaterialPageRoute(builder: (context) => LogoutApp())
-      // );
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => FamilyAuth())
-      );
+      // family 필드 값 확인
+      if (userData['family'] == false) {
+        Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => FamilyAuth())
+        );
+      } else {
+        Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => LogoutApp())
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('오류')),
