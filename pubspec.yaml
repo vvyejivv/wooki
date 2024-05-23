@@ -30,6 +30,16 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_chat_types:
+  flutter_chat_ui:
+  file_picker:
+  image_picker:
+  open_filex:
+  uuid:
+  intl:
+  path_provider:
+  mime:
+  http:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -46,15 +56,8 @@ dependencies:
   shared_preferences:
   provider:
   firebase_dynamic_links: ^5.5.5
-  http:
-  flutter_chat_ui:
-  image_picker:
-  uuid:
-  intl:
-  file_picker:
-  mime:
-  open_filex:
-  path_provider:
+
+
 
 dev_dependencies:
   flutter_test:
@@ -66,6 +69,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^3.0.0
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -122,3 +126,4 @@ flutter:
 #
 # For details regarding fonts from package dependencies,
 # see https://flutter.dev/custom-fonts/#from-packages
+

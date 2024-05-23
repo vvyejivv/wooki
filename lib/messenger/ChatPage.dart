@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
@@ -11,12 +10,18 @@ import 'package:mime/mime.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
+import 'ChatRoomListPage.dart';
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({required this.userId, required this.peerId, required this.chatRoomId, super.key});
+  const ChatPage({
+    required this.userId,
+    required this.roomName,
+    required this.chatRoomId,
+    super.key,
+  });
   final String userId;
-  final String peerId;
-  final String chatRoomId; // chatRoomId 추가
+  final String roomName;
+  final String chatRoomId;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -69,7 +74,7 @@ class _ChatPageState extends State<ChatPage> {
                 },
                 child: const Align(
                   alignment: AlignmentDirectional.centerStart,
-                  child: Text('사진'),
+                  child: Text('사진', style: TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.normal)),
                 ),
               ),
               TextButton(
@@ -196,7 +201,17 @@ class _ChatPageState extends State<ChatPage> {
         .snapshots()
         .listen((snapshot) {
       final messages = snapshot.docs.map((doc) {
-        return types.Message.fromJson(doc.data() as Map<String, dynamic>);
+        final data = doc.data() as Map<String, dynamic>;
+        if (data['type'] == 'system') {
+          return types.CustomMessage(
+            author: types.User(id: ''),
+            createdAt: data['createdAt'],
+            id: doc.id,
+            metadata: {'text': data['text']},
+          );
+        } else {
+          return types.Message.fromJson(data);
+        }
       }).toList();
 
       setState(() {
@@ -205,22 +220,92 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
+  Future<List<String>> _getParticipants() async {
+    final chatRoomDoc = await FirebaseFirestore.instance.collection('CHATROOMS')
+        .doc(widget.chatRoomId)
+        .get();
+
+    final userIds = List<String>.from(chatRoomDoc['USERLIST']);
+
+    final userDocs = await Future.wait(
+        userIds.map((userId) => FirebaseFirestore.instance.collection('USERLIST').doc(userId).get())
+    );
+
+    return userDocs.map((userDoc) => userDoc['name'] as String).toList();
+  }
+
+  void _leaveChatRoom() async {
+    final chatRoomDoc = FirebaseFirestore.instance.collection('CHATROOMS').doc(widget.chatRoomId);
+    final chatRoomSnapshot = await chatRoomDoc.get();
+    final userList = List<String>.from(chatRoomSnapshot['USERLIST']);
+
+    // 현재 사용자의 이름을 가져오기
+    final userSnapshot = await FirebaseFirestore.instance.collection('USERLIST').doc(widget.userId).get();
+    final userName = userSnapshot['name'];
+
+    if (userList.length == 1) {
+      await chatRoomDoc.delete();
+    } else {
+      userList.remove(widget.userId);
+      await chatRoomDoc.update({'USERLIST': userList});
+      FirebaseFirestore.instance.collection('CHATROOMS').doc(widget.chatRoomId).collection('MESSAGES').add({
+        'text': '$userName님이 채팅방에서 나가셨어요.',
+        'createdAt': DateTime.now().millisecondsSinceEpoch,
+        'type': 'system',
+      });
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ChatRoomListPage(userId: widget.userId)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance.collection('USERLIST').doc(widget.peerId).get(),
+      title: Text(widget.roomName),
+      backgroundColor: const Color.fromRGBO(255, 253, 239, 1),
+    ),
+    drawer: Drawer(
+      child: FutureBuilder<List<String>>(
+        future: _getParticipants(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Text('로딩 중...');
+            return const Center(child: CircularProgressIndicator());
           }
-          if (!snapshot.hasData) {
-            return const Text('알 수 없음');
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('참여자가 없습니다.'));
           }
-          return Text(snapshot.data!['name']);
+
+          final participants = snapshot.data!;
+          return Column(
+            children: [
+              Expanded(
+                child: ListView(
+                  children: participants.map((name) => ListTile(title: Text(name))).toList(),
+                ),
+              ),
+              ListTile(
+                leading: Icon(Icons.exit_to_app),
+                title: Text('방에서 나가기'),
+                onTap: _leaveChatRoom,
+              ),
+              ListTile(
+                leading: Icon(Icons.arrow_back),
+                title: Text('뒤로 가기'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ChatRoomListPage(userId: widget.userId)),
+                  );
+                },
+              ),
+            ],
+          );
         },
       ),
-      backgroundColor: const Color.fromRGBO(255, 253, 239, 1),
+      backgroundColor: Color(0xffFFFDEF),
     ),
     body: NotificationListener<ScrollNotification>(
       onNotification: (scrollNotification) => true,
@@ -232,6 +317,24 @@ class _ChatPageState extends State<ChatPage> {
         showUserAvatars: true,
         showUserNames: true,
         user: _user,
+        customMessageBuilder: (message, {required int messageWidth}) {
+          if (message is types.CustomMessage && message.metadata != null) {
+            final text = message.metadata!['text'] as String;
+            return Container(
+              padding: const EdgeInsets.all(8.0),
+              margin: const EdgeInsets.symmetric(vertical: 4.0),
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              child: Text(
+                text,
+                style: const TextStyle(color: Colors.black),
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        },
         l10n: const ChatL10nKo(
           inputPlaceholder: '대화를 입력하세요...',
           emptyChatPlaceholder: '주고받은 대화가 없어요!',
