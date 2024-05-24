@@ -30,7 +30,13 @@ class LoginPage extends StatelessWidget {
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: users.map((user) {
-                    final name = user['name'];
+                    final userData = user.data() as Map<String, dynamic>;
+
+                    if (!userData.containsKey('name')) {
+                      return const SizedBox.shrink(); // name 필드가 없으면 빈 위젯 반환
+                    }
+
+                    final name = userData['name'];
                     final userId = user.id;
 
                     return ElevatedButton(
@@ -46,7 +52,7 @@ class LoginPage extends StatelessWidget {
                     );
                   }).toList(),
                 ),
-              ]
+              ],
             );
           },
         ),
