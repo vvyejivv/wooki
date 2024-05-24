@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'ChatRoomListPage.dart';
+import '../map/MapMain.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -52,6 +53,14 @@ class LoginPage extends StatelessWidget {
                     );
                   }).toList(),
                 ),
+                ElevatedButton(onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => MapScreen(),
+                      ),
+                  );
+                }, child: Text('지도')),
               ],
             );
           },
