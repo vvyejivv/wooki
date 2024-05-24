@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wooki/star/Schefuler/get_Schedule.dart'; // ScheduleService 클래스가 있는 파일 경로를 지정하세요.
+import 'package:wooki/Schefuler/get_Schedule.dart'; // ScheduleService 클래스가 있는 파일 경로를 지정하세요.
 
 void deleteSchedule(BuildContext context, DateTime selectedDate,
     List<Map<String, dynamic>> schedules, int index, Function updateCallback) {

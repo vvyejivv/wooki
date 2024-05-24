@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:wooki/star/Schefuler/main_calander.dart';
-import 'package:wooki/star/Schefuler/add_SchedulScreen.dart';
-import 'package:wooki/star/Schefuler/edit_SchedulScreen.dart';
-import 'package:wooki/star/Schefuler/get_Schedule.dart';
-import 'package:wooki/star/Schefuler/today_banner.dart';
-import 'package:wooki/star/Schefuler/delete_SchedulScreen.dart'; // deleteSchedule 함수가 있는 파일 경로
+import 'package:wooki/main.dart';
+import 'package:wooki/Schefuler/main_calander.dart';
+import 'package:wooki/Schefuler/add_SchedulScreen.dart';
+import 'package:wooki/Schefuler/edit_SchedulScreen.dart';
+import 'package:wooki/Schefuler/get_Schedule.dart';
+import 'package:wooki/Schefuler/today_banner.dart';
+import 'package:wooki/Schefuler/delete_SchedulScreen.dart'; // deleteSchedule 함수가 있는 파일 경로
 
 class HomeScreen extends StatefulWidget {
   final Function(DateTime) updateScheduleCount;
@@ -66,6 +67,20 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => MainPage(),)
+              );
+            },
+            icon:const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: Colors.black,
+            ),
+        ),
+      ),
       body: SafeArea(
         child: Column(
           children: [
