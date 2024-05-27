@@ -17,6 +17,10 @@ import 'package:wooki/main.dart';
 import 'Session.dart';
 import 'package:wooki/FamilyAuth/Auth_main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wooki/map/MapMain.dart';
+import 'package:wooki/Join/Join1.dart';
+import 'package:wooki/find/find_id.dart';
+import 'package:wooki/find/search_id.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,8 +36,11 @@ void main() async {
   );
 
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => Session(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => SearchId()),
+        ChangeNotifierProvider(create: (_) => Session()), // 별도로 추가
+      ],
       child: const LoginApp(),
     ),
   );
@@ -227,13 +234,17 @@ class _SocialLogin extends State<SocialLogin> {
       } else {
         Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => LogoutApp())
+            MaterialPageRoute(builder: (context) => MapScreen(userId: userData['email']))
         );
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('오류')),
+      Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => JoinEx2())
       );
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(content: Text('오류')),
+      // );
     }
   }
 
@@ -260,9 +271,14 @@ class _SocialLogin extends State<SocialLogin> {
                 children: [
                   Container(
                     child: GestureDetector(
-                      onTap: (){},
+                      onTap: (){
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => FindIDPage())
+                        );
+                      },
                       child: Text(
-                          "아이디 찾기",
+                          "아이디 | 비밀번호 찾기",
                         style: TextStyle(
                             fontFamily: 'Pretendard-Regular',
                             fontSize: 14,
@@ -271,29 +287,6 @@ class _SocialLogin extends State<SocialLogin> {
                       ),
                     ),
                   ),
-                  Container(
-                    child: Text(
-                        "  |  ",
-                      style: TextStyle(
-                        fontFamily: 'Pretendard-Regular',
-                        fontSize: 14,
-                        color: Color(0xFFECEAE9),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    child: GestureDetector(
-                      onTap: (){},
-                      child: Text(
-                          "비밀번호 찾기",
-                        style: TextStyle(
-                          fontFamily: 'Pretendard-Regular',
-                          fontSize: 14,
-                          color: Color(0xFF4E3E36),
-                        ),
-                      ),
-                    ),
-                  )
                 ],
               ),
             ),
@@ -358,15 +351,17 @@ class _UserLoginState extends State<UserLogin> {
         var userData = userDocs.docs.first.data();
         print('유저 데이터: $userData');
 
-        // var session = Provider.of<Session>(context, listen: false);
-        // session.login(userData['name'], userData['email'], userData['phone']);
-
         // SharedPreferences 로 처리
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('email', userData['email']);
 
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => FamilyAuth()));
+        if (userData['familyLinked'] == true) {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => MapScreen(userId: userData['email'])));
+        } else {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => FamilyAuth()));
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('이메일 또는 비밀번호를 다시 확인해주세요.')),
@@ -379,6 +374,8 @@ class _UserLoginState extends State<UserLogin> {
       );
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -481,7 +478,12 @@ class _UserLoginState extends State<UserLogin> {
         ),
         SizedBox(height: 10),
         ElevatedButton(
-          onPressed: _login,
+          onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => JoinEx2())
+            );
+          },
           child: Text(
             '회원가입',
             style: TextStyle(
