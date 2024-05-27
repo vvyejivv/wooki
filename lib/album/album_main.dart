@@ -1,8 +1,14 @@
+import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart'; // 날짜 포맷팅을 위해 intl 패키지 추가
 import 'album_upload.dart';
+
+const String currentUserEmail = "test24@kakao.com"; // 하드코딩된 현재 사용자 이메일
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +47,20 @@ class _PostListPageState extends State<PostListPage> {
     } else {
       return 'Unknown User';
     }
+  }
+
+  Future<List<String>> _uploadImages(List<File> images) async {
+    List<String> downloadUrls = [];
+    for (var image in images) {
+      final ref = firebase_storage.FirebaseStorage.instance
+          .ref()
+          .child('sns/${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final uploadTask = ref.putFile(image);
+      final snapshot = await uploadTask.whenComplete(() {});
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+      downloadUrls.add(downloadUrl);
+    }
+    return downloadUrls;
   }
 
   void _showCommentSheet(BuildContext context, String postId, String email, String content, List<String> imageUrls, String cdatetime) {
@@ -176,7 +196,26 @@ class _PostListPageState extends State<PostListPage> {
                                         return ListTile(
                                           title: Text(snapshot.data!),
                                           subtitle: Text(commentContent),
-                                          trailing: Text(commentDate, style: TextStyle(fontSize: 10, color: Colors.grey)),
+                                          trailing: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(commentDate, style: TextStyle(fontSize: 10, color: Colors.grey)),
+                                              if (commentEmail == currentUserEmail) ...[
+                                                IconButton(
+                                                  icon: Icon(Icons.edit),
+                                                  onPressed: () {
+                                                    _editComment(context, postId, comment.id, commentContent);
+                                                  },
+                                                ),
+                                                IconButton(
+                                                  icon: Icon(Icons.delete),
+                                                  onPressed: () {
+                                                    _confirmDeleteComment(context, postId, comment.id);
+                                                  },
+                                                ),
+                                              ],
+                                            ],
+                                          ),
                                         );
                                       }
                                     },
@@ -211,7 +250,7 @@ class _PostListPageState extends State<PostListPage> {
                           .doc(postId)
                           .collection('comments')
                           .add({
-                        'email': 'vvyejivv@gmail.com',
+                        'email': currentUserEmail,
                         'comment': comment,
                         'timestamp': FieldValue.serverTimestamp(),
                       });
@@ -237,11 +276,296 @@ class _PostListPageState extends State<PostListPage> {
     );
   }
 
+  void _confirmDeleteComment(BuildContext context, String postId, String commentId) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('댓글 삭제'),
+          content: Text('댓글을 삭제하시겠습니까?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('취소'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _deleteComment(postId, commentId);
+                Navigator.of(context).pop();
+              },
+              child: Text('삭제'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _editComment(BuildContext context, String postId, String commentId, String currentContent) {
+    TextEditingController _editCommentController = TextEditingController(text: currentContent);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9, // 화면 너비의 90%
+            height: 400, // 고정된 높이
+            padding: EdgeInsets.all(16),
+            child: Column(
+              children: [
+                TextField(
+                  controller: _editCommentController,
+                  decoration: InputDecoration(
+                    hintText: '댓글을 수정하세요...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  maxLines: 7,
+                ),
+                SizedBox(height: 16),
+                Spacer(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text('취소'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        String editedComment = _editCommentController.text.trim();
+                        if (editedComment.isNotEmpty) {
+                          await FirebaseFirestore.instance
+                              .collection('posts')
+                              .doc(postId)
+                              .collection('comments')
+                              .doc(commentId)
+                              .update({'comment': editedComment});
+                          Navigator.of(context).pop();
+                        }
+                      },
+                      child: Text('수정'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.amber,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+
+  void _deleteComment(String postId, String commentId) async {
+    await FirebaseFirestore.instance
+        .collection('posts')
+        .doc(postId)
+        .collection('comments')
+        .doc(commentId)
+        .delete();
+  }
+
+  void _editPost(BuildContext context, String postId, String currentContent, List<String> currentImageUrls) {
+    TextEditingController _editPostController = TextEditingController(text: currentContent);
+    List<File> newImages = [];
+    List<String> newImageUrls = List.from(currentImageUrls);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(12),
+        ),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        TextField(
+                          controller: _editPostController,
+                          decoration: InputDecoration(
+                            hintText: '게시글을 수정하세요...',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          maxLines: 10,
+                        ),
+                        SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () async {
+                            FilePickerResult? result = await FilePicker.platform.pickFiles(
+                              type: FileType.image,
+                              allowMultiple: true,
+                            );
+                            if (result != null) {
+                              setState(() {
+                                newImages = result.paths.map((path) => File(path!)).toList();
+                              });
+                            }
+                          },
+                          child: Text('새로운 이미지 선택'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.amber,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        if (newImages.isNotEmpty)
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: newImages.map((image) {
+                                return Padding(
+                                  padding: const EdgeInsets.all(4.0),
+                                  child: Image.file(
+                                    image,
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('취소'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            String editedContent = _editPostController.text.trim();
+                            if (editedContent.isNotEmpty) {
+                              if (newImages.isNotEmpty) {
+                                newImageUrls = await _uploadImages(newImages);
+                              }
+                              await FirebaseFirestore.instance
+                                  .collection('posts')
+                                  .doc(postId)
+                                  .update({
+                                'content': editedContent,
+                                'imageUrls': newImageUrls,
+                              });
+                              Navigator.of(context).pop();
+                            }
+                          },
+                          child: Text('수정'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.amber,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+
+
+  void _confirmDeletePost(BuildContext context, String postId) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('게시글 삭제'),
+          content: Text('게시글을 삭제하시겠습니까?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('취소'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _deletePost(postId);
+                Navigator.of(context).pop();
+              },
+              child: Text('삭제'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deletePost(String postId) async {
+    await FirebaseFirestore.instance
+        .collection('posts')
+        .doc(postId)
+        .delete();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight + 40), // AppBar 높이 + 공백 높이
+        preferredSize: Size.fromHeight(kToolbarHeight + 10), // AppBar 높이 + 공백 높이
         child: Container(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -382,23 +706,34 @@ class _PostListPageState extends State<PostListPage> {
                         ),
                       ),
                       SizedBox(height: 8),
+                      if (email == currentUserEmail) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.edit),
+                              onPressed: () {
+                                _editPost(context, postId, content, imageUrls);
+                              },
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete),
+                              onPressed: () {
+                                _confirmDeletePost(context, postId);
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
                       Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.star_border,
-                            color: Colors.grey,
-                          ),
                           SizedBox(width: 16),
                           Icon(
                             Icons.chat_bubble_outline,
                             color: Colors.grey,
                           ),
                           SizedBox(width: 16),
-                          Icon(
-                            Icons.share,
-                            color: Colors.grey,
-                          ),
                         ],
                       ),
                     ],
