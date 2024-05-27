@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'ChatRoomListPage.dart';
+import '../map/MapMain.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -9,7 +9,7 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('로그인 페이지'),
+        title: const Text('임시 로그인 페이지'),
       ),
       body: Center(
         child: StreamBuilder<QuerySnapshot>(
@@ -30,7 +30,13 @@ class LoginPage extends StatelessWidget {
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: users.map((user) {
-                    final name = user['name'];
+                    final userData = user.data() as Map<String, dynamic>;
+
+                    if (!userData.containsKey('name')) {
+                      return const SizedBox.shrink(); // name 필드가 없으면 빈 위젯 반환
+                    }
+
+                    final name = userData['name'];
                     final userId = user.id;
 
                     return ElevatedButton(
@@ -38,7 +44,7 @@ class LoginPage extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ChatRoomListPage(userId: userId),
+                            builder: (context) => MapScreen(userId: userId),
                           ),
                         );
                       },
@@ -46,7 +52,7 @@ class LoginPage extends StatelessWidget {
                     );
                   }).toList(),
                 ),
-              ]
+              ],
             );
           },
         ),

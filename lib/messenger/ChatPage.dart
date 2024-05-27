@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
@@ -10,6 +11,7 @@ import 'package:mime/mime.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:firebase_storage/firebase_storage.dart';
 import 'ChatRoomListPage.dart';
 
 class ChatPage extends StatefulWidget {
@@ -107,6 +109,14 @@ class _ChatPageState extends State<ChatPage> {
     );
 
     if (result != null && result.files.single.path != null) {
+      final file = File(result.files.single.path!);
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('files/${DateTime.now().millisecondsSinceEpoch}_${result.files.single.name}');
+      await storageRef.putFile(file);
+
+      final downloadUrl = await storageRef.getDownloadURL();
+
       final message = types.FileMessage(
         author: _user,
         createdAt: DateTime.now().millisecondsSinceEpoch,
@@ -114,7 +124,7 @@ class _ChatPageState extends State<ChatPage> {
         mimeType: lookupMimeType(result.files.single.path!),
         name: result.files.single.name,
         size: result.files.single.size,
-        uri: result.files.single.path!,
+        uri: downloadUrl,
       );
 
       _addMessage(message);
@@ -129,6 +139,13 @@ class _ChatPageState extends State<ChatPage> {
     );
 
     if (result != null) {
+      final file = File(result.path);
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('images/${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await storageRef.putFile(file);
+
+      final downloadUrl = await storageRef.getDownloadURL();
       final bytes = await result.readAsBytes();
       final image = await decodeImageFromList(bytes);
 
@@ -139,7 +156,7 @@ class _ChatPageState extends State<ChatPage> {
         id: const Uuid().v4(),
         name: result.name,
         size: bytes.length,
-        uri: result.path,
+        uri: downloadUrl,
         width: image.width.toDouble(),
       );
 
@@ -268,6 +285,7 @@ class _ChatPageState extends State<ChatPage> {
       backgroundColor: const Color.fromRGBO(255, 253, 239, 1),
     ),
     drawer: Drawer(
+      backgroundColor: Color(0xffFFFDEF),
       child: FutureBuilder<List<String>>(
         future: _getParticipants(),
         builder: (context, snapshot) {
@@ -275,79 +293,83 @@ class _ChatPageState extends State<ChatPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('참여자가 없습니다.'));
+            return const Center(child: Text('사람이 없어요!'));
           }
-
           final participants = snapshot.data!;
           return Column(
             children: [
               Expanded(
                 child: ListView(
-                  children: participants.map((name) => ListTile(title: Text(name))).toList(),
+                  children: participants.map((participant) => Container(
+                    color: Color(0xff6D605A),
+                    child: ListTile(
+                      textColor: Colors.white,
+                      title: Text(participant, style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                  )).toList(),
                 ),
               ),
-              ListTile(
-                leading: Icon(Icons.exit_to_app),
-                title: Text('방에서 나가기'),
-                onTap: _leaveChatRoom,
-              ),
-              ListTile(
-                leading: Icon(Icons.arrow_back),
-                title: Text('뒤로 가기'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => ChatRoomListPage(userId: widget.userId)),
-                  );
-                },
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.exit_to_app),
+                    title: const Text('방에서 나가기'),
+                    onTap: _leaveChatRoom,
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.arrow_back),
+                    title: const Text('뒤로 가기'),
+                    onTap: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => ChatRoomListPage(userId: widget.userId)),
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           );
         },
       ),
-      backgroundColor: Color(0xffFFFDEF),
     ),
-    body: NotificationListener<ScrollNotification>(
-      onNotification: (scrollNotification) => true,
-      child: Chat(
-        messages: _messages,
-        onSendPressed: _handleSendPressed,
-        onAttachmentPressed: _handleAttachmentPressed,
-        onMessageTap: _handleMessageTap,
-        showUserAvatars: true,
-        showUserNames: true,
-        user: _user,
-        customMessageBuilder: (message, {required int messageWidth}) {
-          if (message is types.CustomMessage && message.metadata != null) {
-            final text = message.metadata!['text'] as String;
-            return Container(
-              padding: const EdgeInsets.all(8.0),
-              margin: const EdgeInsets.symmetric(vertical: 4.0),
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: Text(
-                text,
-                style: const TextStyle(color: Colors.black),
-              ),
-            );
-          }
-          return const SizedBox.shrink();
-        },
-        l10n: const ChatL10nKo(
-          inputPlaceholder: '대화를 입력하세요...',
-          emptyChatPlaceholder: '주고받은 대화가 없어요!',
-        ),
-        theme: const DefaultChatTheme(
-          inputBackgroundColor: Colors.white,
-          inputTextColor: Colors.black,
-          backgroundColor: Color.fromRGBO(255, 253, 239, 1),
-          primaryColor: Color.fromRGBO(109, 96, 90, 1),
-          secondaryColor: Color.fromRGBO(236, 234, 233, 1),
-          userAvatarImageBackgroundColor: Color.fromRGBO(168, 152, 145, 1),
-        ),
+    body: Chat(
+      messages: _messages,
+      onAttachmentPressed: _handleAttachmentPressed,
+      onMessageTap: _handleMessageTap,
+      onSendPressed: _handleSendPressed,
+      user: _user,
+      l10n: const ChatL10nKo(
+        inputPlaceholder: '대화를 입력하세요...',
+        emptyChatPlaceholder: '주고받은 대화가 없어요!',
       ),
+      theme: const DefaultChatTheme(
+        inputBackgroundColor: Colors.white,
+        inputTextColor: Colors.black,
+        backgroundColor: Color.fromRGBO(255, 253, 239, 1),
+        primaryColor: Color.fromRGBO(109, 96, 90, 1),
+        secondaryColor: Color.fromRGBO(236, 234, 233, 1),
+        userAvatarImageBackgroundColor: Color.fromRGBO(168, 152, 145, 1),
+      ),
+      customMessageBuilder: (message, {required int messageWidth}) {
+        if (message is types.CustomMessage && message.metadata != null) {
+          final text = message.metadata!['text'] as String;
+          return Container(
+            padding: const EdgeInsets.all(8.0),
+            margin: const EdgeInsets.symmetric(vertical: 4.0),
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            child: Text(
+              text,
+              style: const TextStyle(color: Colors.black),
+            ),
+          );
+        }
+        return const SizedBox.shrink();
+      },
     ),
   );
 }
