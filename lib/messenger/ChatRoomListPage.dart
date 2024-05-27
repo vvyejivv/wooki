@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'ChatPage.dart';
 import 'LoginPage.dart';
+import '../map/MapMain.dart';
 
 class ChatRoomListPage extends StatelessWidget {
   const ChatRoomListPage({required this.userId, super.key});
@@ -16,7 +17,7 @@ class ChatRoomListPage extends StatelessWidget {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => LoginPage()),
+              MaterialPageRoute(builder: (context) => MapScreen(userId: userId,)),
             );
           },
           icon: const Icon(Icons.arrow_back, color: Colors.white,),
@@ -59,7 +60,7 @@ class ChatRoomListPage extends StatelessWidget {
                   itemCount: sortedChatRooms.length,
                   itemBuilder: (context, index) {
                     final chatRoom = sortedChatRooms[index]['chatRoom'];
-                    final recentMessage = sortedChatRooms[index]['recentMessage'];
+                    final recentMessage = sortedSnapshot.data![index]['recentMessage'];
 
                     String recentMessageText = '대화 내용이 없습니다.';
                     String recentMessageTime = '';
@@ -271,15 +272,7 @@ class _CreateChatRoomDialog extends StatefulWidget {
 
 class __CreateChatRoomDialogState extends State<_CreateChatRoomDialog> {
   final List<String> _selectedUserIds = [];
-  final Map<String, String> _userNames = {};
-
-  @override
-  void initState() {
-    super.initState();
-    for (var user in widget.users) {
-      _userNames[user.id] = user['name'];
-    }
-  }
+  final Map<String, dynamic> _userNames = {};
 
   @override
   Widget build(BuildContext context) {
@@ -289,7 +282,8 @@ class __CreateChatRoomDialogState extends State<_CreateChatRoomDialog> {
         child: ListBody(
           children: widget.users.map((user) {
             final userId = user.id;
-            final userName = user['name'];
+            final userData = user.data() as Map<String, dynamic>;
+            final userName = userData.containsKey('name') ? userData['name'] : 'Unknown';
             return CheckboxListTile(
               title: Text(userName),
               value: _selectedUserIds.contains(userId),
