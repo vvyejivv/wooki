@@ -137,9 +137,6 @@ class _JoinScreenState extends State<JoinScreen> {
     }
   }
 
-
-
-
   void _register() async {
     if (!_isVerified) {
       _showSnackBar(context,'먼저 인증을 완료하세요.');
@@ -186,7 +183,7 @@ class _JoinScreenState extends State<JoinScreen> {
         'email': _email.text,
         'phone': _phone.text,
         'todayDate': FieldValue.serverTimestamp(), // 서버 타임스탬프 사용
-        'imagePath': 'https://console.firebase.google.com/u/1/project/wooki-3f810/storage/wooki-3f810.appspot.com/files/~2Fimages?hl=ko', // 이미지 경로 추가
+        'imagePath': 'https://firebasestorage.googleapis.com/v0/b/wooki-3f810.appspot.com/o/images%2FprofileImage.jpg?alt=media&token=465c06f2-7f99-46d7-8b5b-f506166a247b', // 이미지 경로 추가
         'family': false, // family 필드 추가
         'isAdmin' :false, // admin 필드 추가
         'familyLinked' :false,
