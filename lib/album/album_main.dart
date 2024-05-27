@@ -6,17 +6,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart'; // 날짜 포맷팅을 위해 intl 패키지 추가
+import 'package:shared_preferences/shared_preferences.dart';
 import 'album_upload.dart';
-
-const String currentUserEmail = "test24@kakao.com"; // 하드코딩된 현재 사용자 이메일
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(SnsApp());
+  final prefs = await SharedPreferences.getInstance();
+  String? email = prefs.getString('email');
+
+  runApp(SnsApp(currentUserEmail: email));
 }
 
 class SnsApp extends StatelessWidget {
+  final String? currentUserEmail;
+
+  SnsApp({required this.currentUserEmail});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -24,12 +30,16 @@ class SnsApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: PostListPage(),
+      home: PostListPage(currentUserEmail: currentUserEmail),
     );
   }
 }
 
 class PostListPage extends StatefulWidget {
+  final String? currentUserEmail;
+
+  PostListPage({required this.currentUserEmail});
+
   @override
   _PostListPageState createState() => _PostListPageState();
 }
@@ -200,7 +210,7 @@ class _PostListPageState extends State<PostListPage> {
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               Text(commentDate, style: TextStyle(fontSize: 10, color: Colors.grey)),
-                                              if (commentEmail == currentUserEmail) ...[
+                                              if (commentEmail == widget.currentUserEmail) ...[
                                                 IconButton(
                                                   icon: Icon(Icons.edit),
                                                   onPressed: () {
@@ -250,7 +260,7 @@ class _PostListPageState extends State<PostListPage> {
                           .doc(postId)
                           .collection('comments')
                           .add({
-                        'email': currentUserEmail,
+                        'email': widget.currentUserEmail,
                         'comment': comment,
                         'timestamp': FieldValue.serverTimestamp(),
                       });
@@ -706,7 +716,7 @@ class _PostListPageState extends State<PostListPage> {
                         ),
                       ),
                       SizedBox(height: 8),
-                      if (email == currentUserEmail) ...[
+                      if (email == widget.currentUserEmail) ...[
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
