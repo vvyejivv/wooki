@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'ChatPage.dart';
-import 'LoginPage.dart';
 import '../map/MapMain.dart';
 
 class ChatRoomListPage extends StatelessWidget {
@@ -17,16 +16,19 @@ class ChatRoomListPage extends StatelessWidget {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => MapScreen(userId: userId,)),
+              MaterialPageRoute(builder: (context) => MapScreen(userId: userId)),
             );
           },
-          icon: const Icon(Icons.arrow_back, color: Colors.white,),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
         ),
-        title: const Text('채팅방 목록', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),),
+        title: const Text(
+          '채팅방 목록',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+        ),
         actions: [
           IconButton(
             onPressed: () => _showCreateChatRoomDialog(context),
-            icon: const Icon(Icons.add, color: Colors.white,),
+            icon: const Icon(Icons.add, color: Colors.white),
           ),
         ],
         backgroundColor: const Color.fromRGBO(109, 96, 90, 1),
@@ -34,7 +36,8 @@ class ChatRoomListPage extends StatelessWidget {
       body: Container(
         color: const Color.fromRGBO(255, 253, 239, 1),
         child: StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance.collection('CHATROOMS')
+          stream: FirebaseFirestore.instance
+              .collection('CHATROOMS')
               .where('USERLIST', arrayContains: userId)
               .snapshots(),
           builder: (context, snapshot) {
@@ -60,7 +63,8 @@ class ChatRoomListPage extends StatelessWidget {
                   itemCount: sortedChatRooms.length,
                   itemBuilder: (context, index) {
                     final chatRoom = sortedChatRooms[index]['chatRoom'];
-                    final recentMessage = sortedSnapshot.data![index]['recentMessage'];
+                    final recentMessage =
+                    sortedSnapshot.data![index]['recentMessage'];
 
                     String recentMessageText = '대화 내용이 없습니다.';
                     String recentMessageTime = '';
@@ -71,9 +75,13 @@ class ChatRoomListPage extends StatelessWidget {
                     }
 
                     return GestureDetector(
-                      onLongPress: () => _showChatRoomSettingsDialog(context, chatRoom.id, chatRoom['roomName']),
+                      onLongPress: () => _showChatRoomSettingsDialog(
+                          context, chatRoom.id, chatRoom['roomName']),
                       child: ListTile(
-                        title: Text(chatRoom['roomName'], style: TextStyle(fontWeight: FontWeight.w600),),
+                        title: Text(
+                          chatRoom['roomName'],
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
                         subtitle: Text(recentMessageText),
                         trailing: Text(recentMessageTime),
                         onTap: () {
@@ -100,11 +108,13 @@ class ChatRoomListPage extends StatelessWidget {
     );
   }
 
-  Future<List<Map<String, dynamic>>> _getSortedChatRooms(List<DocumentSnapshot> chatRooms) async {
+  Future<List<Map<String, dynamic>>> _getSortedChatRooms(
+      List<DocumentSnapshot> chatRooms) async {
     List<Map<String, dynamic>> chatRoomsWithRecentMessages = [];
 
     for (var chatRoom in chatRooms) {
-      final recentMessageSnapshot = await FirebaseFirestore.instance.collection('CHATROOMS')
+      final recentMessageSnapshot = await FirebaseFirestore.instance
+          .collection('CHATROOMS')
           .doc(chatRoom.id)
           .collection('MESSAGES')
           .orderBy('createdAt', descending: true)
@@ -166,7 +176,8 @@ class ChatRoomListPage extends StatelessWidget {
               return const Center(child: CircularProgressIndicator());
             }
 
-            final users = snapshot.data!.docs.where((doc) => doc.id != userId).toList();
+            final users =
+            snapshot.data!.docs.where((doc) => doc['email'] != userId).toList();
 
             return _CreateChatRoomDialog(userId: userId, users: users);
           },
@@ -175,7 +186,8 @@ class ChatRoomListPage extends StatelessWidget {
     );
   }
 
-  void _showChatRoomSettingsDialog(BuildContext context, String chatRoomId, String peerNames) {
+  void _showChatRoomSettingsDialog(
+      BuildContext context, String chatRoomId, String peerNames) {
     showDialog(
       context: context,
       builder: (context) {
@@ -206,7 +218,8 @@ class ChatRoomListPage extends StatelessWidget {
     );
   }
 
-  void _showEditChatRoomNameDialog(BuildContext context, String chatRoomId, String currentName) {
+  void _showEditChatRoomNameDialog(
+      BuildContext context, String chatRoomId, String currentName) {
     final controller = TextEditingController(text: currentName);
 
     showDialog(
@@ -225,7 +238,10 @@ class ChatRoomListPage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                FirebaseFirestore.instance.collection('CHATROOMS').doc(chatRoomId).update({
+                FirebaseFirestore.instance
+                    .collection('CHATROOMS')
+                    .doc(chatRoomId)
+                    .update({
                   'roomName': controller.text,
                 });
                 Navigator.of(context).pop();
@@ -239,12 +255,14 @@ class ChatRoomListPage extends StatelessWidget {
   }
 
   void _leaveChatRoom(BuildContext context, String chatRoomId) async {
-    final chatRoomDoc = FirebaseFirestore.instance.collection('CHATROOMS').doc(chatRoomId);
+    final chatRoomDoc =
+    FirebaseFirestore.instance.collection('CHATROOMS').doc(chatRoomId);
     final chatRoomSnapshot = await chatRoomDoc.get();
     final userList = List<String>.from(chatRoomSnapshot['USERLIST']);
 
     // 현재 사용자의 이름을 가져오기
-    final userSnapshot = await FirebaseFirestore.instance.collection('USERLIST').doc(userId).get();
+    final userSnapshot =
+    await FirebaseFirestore.instance.collection('USERLIST').doc(userId).get();
     final userName = userSnapshot['name'];
 
     if (userList.length == 1) {
@@ -252,7 +270,11 @@ class ChatRoomListPage extends StatelessWidget {
     } else {
       userList.remove(userId);
       await chatRoomDoc.update({'USERLIST': userList});
-      FirebaseFirestore.instance.collection('CHATROOMS').doc(chatRoomId).collection('MESSAGES').add({
+      FirebaseFirestore.instance
+          .collection('CHATROOMS')
+          .doc(chatRoomId)
+          .collection('MESSAGES')
+          .add({
         'text': '$userName님이 채팅방에서 나가셨어요.',
         'createdAt': DateTime.now().millisecondsSinceEpoch,
         'type': 'system',
@@ -272,7 +294,19 @@ class _CreateChatRoomDialog extends StatefulWidget {
 
 class __CreateChatRoomDialogState extends State<_CreateChatRoomDialog> {
   final List<String> _selectedUserIds = [];
-  final Map<String, dynamic> _userNames = {};
+  final Map<String, String> _userNames = {};
+
+  @override
+  void initState() {
+    super.initState();
+    for (var user in widget.users) {
+      final userData = user.data() as Map<String, dynamic>;
+      final userEmail = userData['email'];
+      final userName =
+      userData.containsKey('name') ? userData['name'] : 'Unknown';
+      _userNames[userEmail] = userName;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -281,18 +315,19 @@ class __CreateChatRoomDialogState extends State<_CreateChatRoomDialog> {
       content: SingleChildScrollView(
         child: ListBody(
           children: widget.users.map((user) {
-            final userId = user.id;
             final userData = user.data() as Map<String, dynamic>;
-            final userName = userData.containsKey('name') ? userData['name'] : 'Unknown';
+            final userEmail = userData['email'];
+            final userName =
+            userData.containsKey('name') ? userData['name'] : 'Unknown';
             return CheckboxListTile(
               title: Text(userName),
-              value: _selectedUserIds.contains(userId),
+              value: _selectedUserIds.contains(userEmail),
               onChanged: (bool? value) {
                 setState(() {
                   if (value == true) {
-                    _selectedUserIds.add(userId);
+                    _selectedUserIds.add(userEmail);
                   } else {
-                    _selectedUserIds.remove(userId);
+                    _selectedUserIds.remove(userEmail);
                   }
                 });
               },
@@ -318,30 +353,39 @@ class __CreateChatRoomDialogState extends State<_CreateChatRoomDialog> {
 
   void _createChatRoom(BuildContext context) async {
     if (_selectedUserIds.isNotEmpty) {
-      final chatRoomId = FirebaseFirestore.instance.collection('CHATROOMS').doc().id;
-      final userList = [widget.userId, ..._selectedUserIds].where((id) => id != null).toList();
-      final roomName = userList.map((id) => _userNames[id] ?? '').where((name) => name.isNotEmpty).join(', ');
+      final chatRoomId =
+          FirebaseFirestore.instance.collection('CHATROOMS').doc().id;
+      final userList =
+      [widget.userId, ..._selectedUserIds].where((id) => id != null).toList();
+      final roomName = userList
+          .map((id) => _userNames[id] ?? '')
+          .where((name) => name.isNotEmpty)
+          .join(', ');
 
       // 중복 체크
-      final existingRooms = await FirebaseFirestore.instance.collection('CHATROOMS')
+      final existingRooms = await FirebaseFirestore.instance
+          .collection('CHATROOMS')
           .where('USERLIST', arrayContains: widget.userId)
           .get();
 
       bool isDuplicate = false;
       for (var room in existingRooms.docs) {
         final existingUserList = List<String>.from(room['USERLIST']);
-        if (existingUserList.length == userList.length && existingUserList.every((id) => userList.contains(id))) {
+        if (existingUserList.length == userList.length &&
+            existingUserList.every((id) => userList.contains(id))) {
           isDuplicate = true;
           break;
         }
       }
 
       if (isDuplicate) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('이미 있는 채팅방이에요!'))
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('이미 있는 채팅방이에요!')));
       } else {
-        await FirebaseFirestore.instance.collection('CHATROOMS').doc(chatRoomId).set({
+        await FirebaseFirestore.instance
+            .collection('CHATROOMS')
+            .doc(chatRoomId)
+            .set({
           'USERLIST': userList,
           'id': chatRoomId,
           'roomName': roomName,

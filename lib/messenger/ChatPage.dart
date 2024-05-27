@@ -242,13 +242,13 @@ class _ChatPageState extends State<ChatPage> {
         .doc(widget.chatRoomId)
         .get();
 
-    final userIds = List<String>.from(chatRoomDoc['USERLIST']);
+    final userEmails = List<String>.from(chatRoomDoc['USERLIST']);
 
     final userDocs = await Future.wait(
-        userIds.map((userId) => FirebaseFirestore.instance.collection('USERLIST').doc(userId).get())
+        userEmails.map((userEmail) => FirebaseFirestore.instance.collection('USERLIST').where('email', isEqualTo: userEmail).get())
     );
 
-    return userDocs.map((userDoc) => userDoc['name'] as String).toList();
+    return userDocs.map((userQuery) => userQuery.docs.first['name'] as String).toList();
   }
 
   void _leaveChatRoom() async {
@@ -257,8 +257,8 @@ class _ChatPageState extends State<ChatPage> {
     final userList = List<String>.from(chatRoomSnapshot['USERLIST']);
 
     // 현재 사용자의 이름을 가져오기
-    final userSnapshot = await FirebaseFirestore.instance.collection('USERLIST').doc(widget.userId).get();
-    final userName = userSnapshot['name'];
+    final userQuery = await FirebaseFirestore.instance.collection('USERLIST').where('email', isEqualTo: widget.userId).get();
+    final userName = userQuery.docs.first['name'];
 
     if (userList.length == 1) {
       await chatRoomDoc.delete();
