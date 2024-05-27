@@ -40,7 +40,6 @@ dependencies:
   path_provider:
   mime:
   http:
-
   google_maps_flutter:
   geolocator:
   sensors_plus:
