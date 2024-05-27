@@ -4,7 +4,7 @@ import 'package:flutter/material.dart'; // Flutter의 UI 구성 요소를 사용
 import 'package:wooki/firebase_options.dart'; // Firebase 프로젝트 설정을 위한 옵션 파일
 import 'package:wooki/CustomerServiceCenter/main_screens.dart'; // MainScreens 위젯 파일 임포트
 import 'package:provider/provider.dart'; // Provider 패키지 임포트
-import '../login/Session.dart';
+import '../login/Session.dart';// Session 클래스 임포트
 
 // 앱의 메인 함수
 void main() async {
@@ -21,14 +21,14 @@ void main() async {
   runApp(
     ChangeNotifierProvider(
       create: (context) => Session(),
-      child: const MyApp(),
+      child: const Customer(),
     ),
   );
 }
 
 // 앱의 최상위 위젯을 정의하는 MyApp 클래스. StatelessWidget을 상속받아 변경 가능한 상태를 관리하지 않습니다.
-class MyApp extends StatelessWidget {
-  const MyApp({super.key}); // 생성자에서 선택적으로 key를 전달받을 수 있습니다.
+class Customer extends StatelessWidget {
+  const Customer({super.key}); // 생성자에서 선택적으로 key를 전달받을 수 있습니다.
 
   @override
   Widget build(BuildContext context) {

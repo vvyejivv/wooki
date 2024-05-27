@@ -10,12 +10,12 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   initializeDateFormatting('ko_KR', null).then((_) {
-    runApp(MyApp());
+    runApp(Schefuler());
   });
 }
 
 
-class MyApp extends StatelessWidget {
+class Schefuler extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
