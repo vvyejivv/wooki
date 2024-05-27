@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // 세션 관리 패키지
 import '../messenger/ChatRoomListPage.dart';
 import '../album/album_main.dart';
+import '../login/Login_main.dart'; // 로그인 페이지 임포트
 
 class MapScreen extends StatefulWidget {
   final String userId;
@@ -19,7 +21,7 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   late GoogleMapController mapController;
-  LatLng _currentPosition = LatLng(37.4909987338, 126.720552076);
+  LatLng _currentPosition = LatLng(37.4909987338, 126.720552076); // 초기값 설정
   final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
   bool _isCentered = false;
   Marker? _currentLocationMarker;
@@ -40,9 +42,10 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _getUserName() async {
-    DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('USERLIST').doc(widget.userId).get();
+    QuerySnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance.collection('USERLIST').where('email', isEqualTo: widget.userId).get();
+    Map<String, dynamic> userData = userDoc.docs.first.data();
     setState(() {
-      _userName = userDoc['name'];
+      _userName = userData['name'];
     });
   }
 
@@ -68,7 +71,7 @@ class _MapScreenState extends State<MapScreen> {
     }
 
     final position = await _geolocatorPlatform.getCurrentPosition();
-    _updatePosition(position);
+    _updatePosition(position); // 현재 위치를 초기 위치로 설정
 
     _positionStreamSubscription = _geolocatorPlatform.getPositionStream().listen((Position position) {
       _startUpdateTimer(position);
@@ -175,6 +178,94 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  void _showBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          color: Color(0xff6D605A),
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: Icon(Icons.logout, color: Colors.white),
+                title: Text('로그아웃', style: TextStyle(color: Colors.white)),
+                onTap: _logout,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showFamilyInfoBottomSheet() async {
+    QuerySnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance
+        .collection('USERLIST')
+        .where('email', isEqualTo: widget.userId)
+        .get();
+    Map<String, dynamic> userData = userDoc.docs.first.data();
+
+    bool familyLinked = userData['familyLinked'];
+
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        if (!familyLinked) {
+          return Container(
+            color: Color(0xff6D605A),
+            child: Center(
+              child: Text(
+                '가족으로 등록된 사람이 없어요!',
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              ),
+            ),
+          );
+        } else {
+          return StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('USERLIST')
+                .doc(userDoc.docs.first.id)
+                .collection('FAMILY')
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return Center(child: CircularProgressIndicator());
+              }
+
+              var familyDocs = snapshot.data!.docs;
+
+              return Container(
+                color: Color(0xff6D605A),
+                child: ListView.builder(
+                  itemCount: familyDocs.length,
+                  itemBuilder: (context, index) {
+                    var familyData = familyDocs[index].data() as Map<String, dynamic>;
+                    return ListTile(
+                      title: Text(
+                        familyData['familyName'],
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+          );
+        }
+      },
+    );
+  }
+
+  Future<void> _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => LoginApp()),
+          (Route<dynamic> route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -200,6 +291,7 @@ class _MapScreenState extends State<MapScreen> {
             onMapCreated: (controller) {
               setState(() {
                 mapController = controller;
+                _getCurrentLocation(); // 초기 위치를 설정한 후, 지도에 반영
               });
             },
             initialCameraPosition: CameraPosition(
@@ -219,32 +311,10 @@ class _MapScreenState extends State<MapScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildBottomNavigationBarItem(Icons.home),
             GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SnsApp(),
-                  ),
-                );
-              },
-              child: _buildBottomNavigationBarItem(Icons.photo_album)
+              onTap: _showFamilyInfoBottomSheet,
+              child: _buildBottomNavigationBarItem(Icons.home),
             ),
-            ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  shape: CircleBorder(),
-                  backgroundColor: Colors.transparent
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ChatRoomListPage(userId: widget.userId),
-                    ),
-                  );
-              }, child: Image.asset('assets/img/wooki3.png', height: 60,)
-              ),
             GestureDetector(
                 onTap: () {
                   Navigator.push(
@@ -256,7 +326,37 @@ class _MapScreenState extends State<MapScreen> {
                 },
                 child: _buildBottomNavigationBarItem(Icons.photo_album)
             ),
-            _buildBottomNavigationBarItem(Icons.more_horiz),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                shape: CircleBorder(),
+                backgroundColor: Colors.transparent,
+                elevation: 5,
+                shadowColor: Colors.grey.withOpacity(0.5),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChatRoomListPage(userId: widget.userId),
+                  ),
+                );
+              }, child: Image.asset('assets/img/wooki3.png', height: 60,),
+            ),
+            GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SnsApp(),
+                    ),
+                  );
+                },
+                child: _buildBottomNavigationBarItem(Icons.photo_album)
+            ),
+            GestureDetector(
+                onTap: _showBottomSheet,
+                child: _buildBottomNavigationBarItem(Icons.more_horiz)
+            ),
           ],
         ),
       ),
