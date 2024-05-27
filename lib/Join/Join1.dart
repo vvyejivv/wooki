@@ -64,13 +64,11 @@ class _JoinScreenState extends State<JoinScreen> {
 
   void _showSnackBar(BuildContext context, String message) {
     if (message.isNotEmpty) {
-      print(message);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
       );
     }
   }
-
 
   final TextEditingController _phone = TextEditingController();
   final TextEditingController _todayDateController = TextEditingController();
@@ -130,7 +128,7 @@ class _JoinScreenState extends State<JoinScreen> {
     }
 
     if (_pwd.text != _pwd1.text) {
-      _showSnackBar(context,'패스워드가 다릅니다.');
+      _showSnackBar(context,'비밀번호가 다릅니다.');
       return;
     }
 
@@ -146,7 +144,8 @@ class _JoinScreenState extends State<JoinScreen> {
         'email': _email.text,
         'phone': _phone.text,
         'todayDate': FieldValue.serverTimestamp(), // 서버 타임스탬프 사용
-        'imagePath': 'assets/place2.jpg',// 이미지 경로 추가
+        'imagePath': 'assets/place2.jpg', // 이미지 경로 추가
+        'family': false, // family 필드 추가
       });
 
       _showSnackBar(context,'가입되었음!!');
@@ -158,6 +157,7 @@ class _JoinScreenState extends State<JoinScreen> {
       _verificationCodeController.clear();
     } catch (e) {
       _showSnackBar(context,'Error: $e');
+      print('Error adding document: $e'); // 에러 로그 출력
     }
   }
 
