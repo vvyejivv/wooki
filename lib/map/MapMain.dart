@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../messenger/ChatRoomListPage.dart';
+import '../album/album_main.dart';
 
 class MapScreen extends StatefulWidget {
   final String userId;
@@ -24,9 +25,11 @@ class _MapScreenState extends State<MapScreen> {
   Marker? _currentLocationMarker;
   Timer? _updateTimer;
   StreamSubscription<Position>? _positionStreamSubscription;
+  StreamSubscription<MagnetometerEvent>? _magnetometerSubscription;
   String? _userName;
   double _heading = 0;
   Set<Polygon> _polygons = {};
+  double _currentZoom = 18.0;
 
   @override
   void initState() {
@@ -102,11 +105,13 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _listenToSensorEvents() {
-    magnetometerEvents.listen((MagnetometerEvent event) {
-      setState(() {
-        _heading = _calculateHeading(event.x, event.y, event.z);
-        _updatePolygon();
-      });
+    _magnetometerSubscription = magnetometerEvents.listen((MagnetometerEvent event) {
+      if (mounted) {
+        setState(() {
+          _heading = _calculateHeading(event.x, event.y, event.z);
+          _updatePolygon();
+        });
+      }
     });
   }
 
@@ -119,19 +124,21 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _updatePolygon() {
-    const double viewAngle = 30.0;
-    const double viewDistance = 0.002; // 약 200m
+    const double baseViewAngle = 30.0;
+    const double baseViewDistance = 0.002; // 약 200m
 
-    final double leftAngle = (_heading - viewAngle).toRad();
-    final double rightAngle = (_heading + viewAngle).toRad();
+    double adjustedViewDistance = baseViewDistance * pow(2, 18.0 - _currentZoom);
+
+    final double leftAngle = (_heading - baseViewAngle).toRad();
+    final double rightAngle = (_heading + baseViewAngle).toRad();
 
     final LatLng leftPoint = LatLng(
-      _currentPosition.latitude + viewDistance * cos(leftAngle),
-      _currentPosition.longitude + viewDistance * sin(leftAngle),
+      _currentPosition.latitude + adjustedViewDistance * cos(leftAngle),
+      _currentPosition.longitude + adjustedViewDistance * sin(leftAngle),
     );
     final LatLng rightPoint = LatLng(
-      _currentPosition.latitude + viewDistance * cos(rightAngle),
-      _currentPosition.longitude + viewDistance * sin(rightAngle),
+      _currentPosition.latitude + adjustedViewDistance * cos(rightAngle),
+      _currentPosition.longitude + adjustedViewDistance * sin(rightAngle),
     );
 
     setState(() {
@@ -140,7 +147,7 @@ class _MapScreenState extends State<MapScreen> {
           polygonId: PolygonId('viewPolygon'),
           points: [_currentPosition, leftPoint, rightPoint, _currentPosition],
           fillColor: Colors.blue.withOpacity(0.2),
-          strokeColor: Colors.blue.withOpacity(0.5),
+          strokeColor: Colors.transparent,
           strokeWidth: 2,
         ),
       };
@@ -154,6 +161,11 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _onCameraMove(CameraPosition position) {
+    setState(() {
+      _currentZoom = position.zoom;
+      _updatePolygon();
+    });
+
     if (_isCentered) {
       mapController.animateCamera(CameraUpdate.newLatLng(_currentPosition));
     } else {
@@ -192,7 +204,7 @@ class _MapScreenState extends State<MapScreen> {
             },
             initialCameraPosition: CameraPosition(
               target: _currentPosition,
-              zoom: 14.0,
+              zoom: 18.0,
             ),
             onCameraMove: _onCameraMove,
             myLocationEnabled: true,
@@ -203,48 +215,63 @@ class _MapScreenState extends State<MapScreen> {
         ],
       ),
       bottomNavigationBar: BottomAppBar(
-        color: Color(0xFFB69E94),
+        color: Color(0xFF4E3E36),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: <Widget>[
-            _buildBottomNavigationBarItem(Icons.home, '홈'),
-            _buildBottomNavigationBarItem(Icons.photo_album, '앨범'),
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildBottomNavigationBarItem(Icons.home),
             GestureDetector(
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ChatRoomListPage(userId: widget.userId),
+                    builder: (context) => SnsApp(),
                   ),
                 );
               },
-              child: _buildBottomNavigationBarItem(Icons.message, '메신저'),
+              child: _buildBottomNavigationBarItem(Icons.photo_album)
             ),
-            _buildBottomNavigationBarItem(Icons.calendar_today, '캘린더'),
-            _buildBottomNavigationBarItem(Icons.more_horiz, '더보기'),
+            ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  shape: CircleBorder(),
+                  backgroundColor: Colors.transparent
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChatRoomListPage(userId: widget.userId),
+                    ),
+                  );
+              }, child: Image.asset('assets/img/wooki3.png', height: 60,)
+              ),
+            GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SnsApp(),
+                    ),
+                  );
+                },
+                child: _buildBottomNavigationBarItem(Icons.photo_album)
+            ),
+            _buildBottomNavigationBarItem(Icons.more_horiz),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildBottomNavigationBarItem(IconData icon, String label) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Icon(icon, color: Colors.white),
-        Text(
-          label,
-          style: TextStyle(color: Colors.white),
-        ),
-      ],
-    );
+  Widget _buildBottomNavigationBarItem(IconData icon) {
+    return Icon(icon, color: Colors.white60, size: 30,);
   }
 
   @override
   void dispose() {
     _updateTimer?.cancel();
     _positionStreamSubscription?.cancel();
+    _magnetometerSubscription?.cancel();
     super.dispose();
   }
 }
