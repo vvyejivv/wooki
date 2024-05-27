@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:wooki/CustomerServiceCenter/announcement.dart';
+import 'package:provider/provider.dart';
+import '../login/Session.dart';
+import 'announcement.dart';
 import 'asked_questions.dart';
-import '../login/Session.dart'; // Session 클래스 임포트
+import 'chat_screen.dart';
+import 'admin_chat_screen.dart';
 
 class MainScreens extends StatefulWidget {
   const MainScreens({super.key});
@@ -11,7 +14,7 @@ class MainScreens extends StatefulWidget {
 }
 
 class _MainScreensState extends State<MainScreens> with SingleTickerProviderStateMixin {
-  late final TabController _tabController; // final로 선언하여 초기화 후 변경되지 않음을 명시
+  late final TabController _tabController;
 
   @override
   void initState() {
@@ -27,6 +30,9 @@ class _MainScreensState extends State<MainScreens> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    var session = Provider.of<Session>(context);
+    //bool isAdmin = session.isAdmin; // Session에서 관리자인지 여부를 가져옵니다.
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('고객센터'),
@@ -36,23 +42,26 @@ class _MainScreensState extends State<MainScreens> with SingleTickerProviderStat
         ),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: '홈'),
-            Tab(text: 'FAQ'),
-            Tab(text: '문의내역'),
-            Tab(text: '고객의 소리'),
-            Tab(text: '공지사항'),
+          indicatorColor: Colors.blue,
+          labelColor: Colors.black,
+          unselectedLabelColor: Colors.grey,
+          tabs: [
+            Tab(icon: Icon(Icons.home), text: '홈'),
+            Tab(icon: Icon(Icons.help), text: 'FAQ'),
+            Tab(icon: Icon(Icons.message), text: '문의내역'),
+            Tab(icon: Icon(Icons.record_voice_over), text: '고객의 소리'),
+            Tab(icon: Icon(Icons.announcement), text: '공지사항'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
-        children: const [
-          Center(child: Text('Home Page')),
-          AskedQuestions(), // FAQ 페이지로 `AskedQuestions` 위젯 사용
-          Center(child: Text('Inquiry History Page')),
-          Center(child: Text('Customer Voice Page')),
-          Announcement(),
+        children: [
+          const Center(child: Text('Home Page')),
+          const AskedQuestions(),
+          //isAdmin ? AdminChatScreen() : ChatScreen(), // 관리자인 경우 AdminChatScreen, 일반 사용자인 경우 ChatScreen
+          const Center(child: Text('Customer Voice Page')),
+          const Announcement(),
         ],
       ),
     );
