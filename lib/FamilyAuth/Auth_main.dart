@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wooki/login/Logout.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -98,16 +96,30 @@ class _EmailAuthState extends State<EmailAuth> {
     }
 
     if (userDocs.docs.isNotEmpty) {
-      // 이메일 또는 전화번호가 존재하는 경우, 초대 목록에 추가
-      await _inviteMember(input);
+      // 이메일 또는 전화번호가 존재하는 경우, 가족 구성원으로 추가
+      await _addFamilyMember(_myEmailController.text, input);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('초대가 완료되었습니다.')),
+        SnackBar(content: Text('가족 구성원이 추가되었습니다.')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('입력하신 정보가 존재하지 않습니다.')),
       );
     }
+  }
+
+  Future<void> _addFamilyMember(String email, String familyEmail) async {
+    DocumentReference userDocRef = FirebaseFirestore.instance.collection('USERLIST').doc(email);
+    CollectionReference familyListRef = userDocRef.collection('FAMILYLIST');
+
+    await familyListRef.add({
+      'familyEmail': familyEmail,
+      'addedAt': FieldValue.serverTimestamp(), // 추가된 시간
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('가족 구성원이 추가되었습니다.')),
+    );
   }
 
   void _showInvitationListDialog() {
@@ -234,6 +246,20 @@ class _EmailAuthState extends State<EmailAuth> {
                   ElevatedButton(
                     onPressed: _showInvitationListDialog,
                     child: Text('초대 받은 목록'),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      String myEmail = _myEmailController.text;
+                      String familyEmail = _otherEmailController.text;
+                      _addFamilyMember(myEmail, familyEmail);
+                    },
+                    child: Text('가족 구성원 추가'),
                   ),
                 ],
               ),
