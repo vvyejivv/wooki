@@ -11,8 +11,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kakao_flutter_sdk_common/kakao_flutter_sdk_common.dart';
-import 'package:provider/provider.dart';
-import 'Session.dart';
 import 'package:wooki/FamilyAuth/Auth_main.dart';
 import 'package:wooki/map/MapMain.dart';
 import 'package:wooki/Join/Join1.dart';
@@ -22,7 +20,6 @@ import 'package:wooki/find/search_id.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SharedPreferences.getInstance();
-  // await FirebaseAuth.instance.signOut(); //로그아웃
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -32,15 +29,7 @@ void main() async {
     javaScriptAppKey: '4ad5aa841d079ff244bbdbbad04eae08',
   );
 
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => SearchId()),
-        ChangeNotifierProvider(create: (_) => Session()), // 별도로 추가
-      ],
-      child: const LoginApp(),
-    ),
-  );
+  runApp(const LoginApp());
 }
 
 class LoginApp extends StatelessWidget {
@@ -68,7 +57,7 @@ class _SocialLogin extends State<SocialLogin> {
   void initState() {
     super.initState();
     // 위젯이 처음으로 생성될 때 세션 정보를 삭제합니다.
-    Provider.of<Session>(context, listen: false).logout();
+    // logout();  // 만약 초기화가 필요하다면, 주석 해제
   }
 
   // 네이버 로그인
@@ -216,12 +205,13 @@ class _SocialLogin extends State<SocialLogin> {
     print(email);
     if (userDocs.docs.isNotEmpty) {
       var userData = userDocs.docs.first.data();
-      var session = Provider.of<Session>(context, listen: false);
-      session.login(userData['name'], userData['email'], userData['phone']);
 
       // SharedPreferences 세션 처리
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('email', email);
+      await prefs.setString('name', userData['name']);
+      await prefs.setString('phone', userData['phone']);
+
       // family 필드 값 확인
       if (userData['family'] == false) {
         Navigator.push(
@@ -275,11 +265,11 @@ class _SocialLogin extends State<SocialLogin> {
                         );
                       },
                       child: Text(
-                          "아이디 | 비밀번호 찾기",
+                        "아이디 | 비밀번호 찾기",
                         style: TextStyle(
-                            fontFamily: 'Pretendard-Regular',
-                            fontSize: 14,
-                            color: Color(0xFF4E3E36),
+                          fontFamily: 'Pretendard-Regular',
+                          fontSize: 14,
+                          color: Color(0xFF4E3E36),
                         ),
                       ),
                     ),
@@ -371,8 +361,6 @@ class _UserLoginState extends State<UserLogin> {
       );
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
