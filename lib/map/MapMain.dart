@@ -5,10 +5,20 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // 세션 관리 패키지
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_core/firebase_core.dart';
 import '../messenger/ChatRoomListPage.dart';
 import '../album/album_main.dart';
-import '../login/Login_main.dart'; // 로그인 페이지 임포트
+import '../login/Login_main.dart';
+
+// main function to initialize Firebase and run the app
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MaterialApp(
+    home: MapScreen(userId: 'your_user_id'),
+  ));
+}
 
 class MapScreen extends StatefulWidget {
   final String userId;
@@ -21,7 +31,7 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   late GoogleMapController mapController;
-  LatLng _currentPosition = LatLng(37.4909987338, 126.720552076); // 초기값 설정
+  LatLng _currentPosition = LatLng(37.4909987338, 126.720552076);
   final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
   bool _isCentered = false;
   Marker? _currentLocationMarker;
@@ -29,6 +39,7 @@ class _MapScreenState extends State<MapScreen> {
   StreamSubscription<Position>? _positionStreamSubscription;
   StreamSubscription<MagnetometerEvent>? _magnetometerSubscription;
   String? _userName;
+  String? _userImage;
   double _heading = 0;
   Set<Polygon> _polygons = {};
   double _currentZoom = 18.0;
@@ -42,11 +53,23 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _getUserName() async {
-    QuerySnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance.collection('USERLIST').where('email', isEqualTo: widget.userId).get();
-    Map<String, dynamic> userData = userDoc.docs.first.data();
-    setState(() {
-      _userName = userData['name'];
-    });
+    try {
+      QuerySnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance
+          .collection('USERLIST')
+          .where('email', isEqualTo: widget.userId)
+          .get();
+      if (userDoc.docs.isNotEmpty) {
+        Map<String, dynamic> userData = userDoc.docs.first.data();
+        setState(() {
+          _userName = userData['name'];
+          _userImage = userData['imagePath'];
+        });
+      } else {
+        print('User document not found');
+      }
+    } catch (e) {
+      print('Error getting user data: $e');
+    }
   }
 
   Future<void> _getCurrentLocation() async {
@@ -71,7 +94,7 @@ class _MapScreenState extends State<MapScreen> {
     }
 
     final position = await _geolocatorPlatform.getCurrentPosition();
-    _updatePosition(position); // 현재 위치를 초기 위치로 설정
+    _updatePosition(position);
 
     _positionStreamSubscription = _geolocatorPlatform.getPositionStream().listen((Position position) {
       _startUpdateTimer(position);
@@ -128,7 +151,7 @@ class _MapScreenState extends State<MapScreen> {
 
   void _updatePolygon() {
     const double baseViewAngle = 30.0;
-    const double baseViewDistance = 0.002; // 약 200m
+    const double baseViewDistance = 0.002;
 
     double adjustedViewDistance = baseViewDistance * pow(2, 18.0 - _currentZoom);
 
@@ -181,17 +204,75 @@ class _MapScreenState extends State<MapScreen> {
   void _showBottomSheet() {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (BuildContext context) {
-        return Container(
-          color: Color(0xff6D605A),
-          child: Wrap(
-            children: <Widget>[
-              ListTile(
-                leading: Icon(Icons.logout, color: Colors.white),
-                title: Text('로그아웃', style: TextStyle(color: Colors.white)),
-                onTap: _logout,
-              ),
-            ],
+        return FractionallySizedBox(
+          heightFactor: 0.8,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Color(0xff6D605A),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              children: <Widget>[
+                SizedBox(height: 16),
+                _userImage != null
+                    ? CircleAvatar(
+                  radius: 120, // 두 배로 키운 사용자 이미지 크기
+                  backgroundImage: NetworkImage(_userImage!),
+                )
+                    : CircleAvatar(
+                  radius: 120, // 두 배로 키운 기본 이미지 크기
+                  child: Icon(Icons.person, size: 80),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  _userName ?? '사용자 이름',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+                SizedBox(height: 16),
+                Expanded(
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    children: [
+                      ListTile(
+                        leading: Icon(Icons.edit, color: Colors.white),
+                        title: Text('회원정보수정', style: TextStyle(color: Colors.white)),
+                        onTap: () {
+                          // Add your onTap functionality here
+                        },
+                      ),
+                      SizedBox(height: 16),
+                      ListTile(
+                        leading: Icon(Icons.group, color: Colors.white),
+                        title: Text('가족연결관리', style: TextStyle(color: Colors.white)),
+                        onTap: () {
+                          // Add your onTap functionality here
+                        },
+                      ),
+                      SizedBox(height: 16),
+                      ListTile(
+                        leading: Icon(Icons.help, color: Colors.white),
+                        title: Text('고객센터', style: TextStyle(color: Colors.white)),
+                        onTap: () {
+                          // Add your onTap functionality here
+                        },
+                      ),
+                      SizedBox(height: 16),
+                      ListTile(
+                        leading: Icon(Icons.logout, color: Colors.white),
+                        title: Text('로그아웃', style: TextStyle(color: Colors.white)),
+                        onTap: _logout,
+                      ),
+                      SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -291,7 +372,7 @@ class _MapScreenState extends State<MapScreen> {
             onMapCreated: (controller) {
               setState(() {
                 mapController = controller;
-                _getCurrentLocation(); // 초기 위치를 설정한 후, 지도에 반영
+                _getCurrentLocation();
               });
             },
             initialCameraPosition: CameraPosition(
