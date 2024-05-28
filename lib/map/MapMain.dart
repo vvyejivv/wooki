@@ -1,17 +1,24 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:typed_data';
-import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:image/image.dart' as img;
-import 'package:flutter/services.dart';
+import 'package:firebase_core/firebase_core.dart';
 import '../messenger/ChatRoomListPage.dart';
 import '../album/album_main.dart';
 import '../login/Login_main.dart';
+
+// main function to initialize Firebase and run the app
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MaterialApp(
+    home: MapScreen(userId: 'your_user_id'),
+  ));
+}
 
 class MapScreen extends StatefulWidget {
   final String userId;
@@ -32,9 +39,8 @@ class _MapScreenState extends State<MapScreen> {
   StreamSubscription<Position>? _positionStreamSubscription;
   StreamSubscription<MagnetometerEvent>? _magnetometerSubscription;
   String? _userName;
-  String? _imagePath;
+  String? _userImage;
   double _heading = 0;
-  Set<Marker> _markers = {};
   Set<Polygon> _polygons = {};
   double _currentZoom = 18.0;
 
@@ -47,46 +53,22 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _getUserName() async {
-    QuerySnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance.collection('USERLIST').where('email', isEqualTo: widget.userId).get();
-    Map<String, dynamic> userData = userDoc.docs.first.data();
-    setState(() {
-      _userName = userData['name'];
-      _imagePath = userData['imagePath'];
-    });
-    _getFamilyMarkers(userDoc.docs.first.id); // Fetch family markers after getting user data
-  }
-
-  Future<Uint8List> _getMarkerIcon() async {
-    if (_imagePath != null) {
-      final ByteData data = await NetworkAssetBundle(Uri.parse(_imagePath!)).load("");
-      final Uint8List bytes = data.buffer.asUint8List();
-      final img.Image? image = img.decodeImage(Uint8List.fromList(bytes));
-
-      if (image == null) {
-        throw Exception('Failed to decode image');
+    try {
+      QuerySnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance
+          .collection('USERLIST')
+          .where('email', isEqualTo: widget.userId)
+          .get();
+      if (userDoc.docs.isNotEmpty) {
+        Map<String, dynamic> userData = userDoc.docs.first.data();
+        setState(() {
+          _userName = userData['name'];
+          _userImage = userData['imagePath'];
+        });
+      } else {
+        print('User document not found');
       }
-
-      final img.Image resizedImage = img.copyResize(image, width: 100, height: 100);
-
-      // Create a circular mask
-      final img.Image circularImage = img.Image(height: 100, width: 100);
-      final int radius = 50;
-      final int centerX = 50;
-      final int centerY = 50;
-      for (int y = 0; y < 100; y++) {
-        for (int x = 0; x < 100; x++) {
-          if (pow(x - centerX, 2) + pow(y - centerY, 2) <= pow(radius, 2)) {
-            circularImage.setPixel(x, y, resizedImage.getPixel(x, y));
-          } else {
-            circularImage.setPixel(x, y, img.ColorInt8(0)); // Transparent color
-          }
-        }
-      }
-
-      return Uint8List.fromList(img.encodePng(circularImage));
-    } else {
-      final ByteData data = await rootBundle.load('assets/default_marker.png');
-      return data.buffer.asUint8List();
+    } catch (e) {
+      print('Error getting user data: $e');
     }
   }
 
@@ -128,17 +110,14 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-  Future<void> _updatePosition(Position position) async {
+  void _updatePosition(Position position) {
     final newPosition = LatLng(position.latitude, position.longitude);
-    final iconBytes = await _getMarkerIcon();
-    final icon = BitmapDescriptor.fromBytes(iconBytes);
     if (mounted) {
       setState(() {
         _currentPosition = newPosition;
         _currentLocationMarker = Marker(
           markerId: MarkerId('currentLocation'),
           position: newPosition,
-          icon: icon,
           infoWindow: InfoWindow(title: _userName != null ? '$_userName의 위치' : '현재 위치'),
           rotation: _heading,
         );
@@ -147,27 +126,6 @@ class _MapScreenState extends State<MapScreen> {
           mapController.animateCamera(CameraUpdate.newLatLng(newPosition));
         }
         _updatePolygon();
-      });
-    }
-  }
-
-  Future<void> _getFamilyMarkers(String userId) async {
-    final mapDocs = await FirebaseFirestore.instance
-        .collection('USERLIST')
-        .doc(userId)
-        .collection('MAP')
-        .get();
-
-    for (var mapDoc in mapDocs.docs) {
-      final mapData = mapDoc.data();
-      final LatLng position = LatLng(mapData['Latitude'], mapData['Longitude']);
-
-      setState(() {
-        _markers.add(Marker(
-          markerId: MarkerId(mapDoc.id),
-          position: position,
-          infoWindow: InfoWindow(title: mapData['familyName']),
-        ));
       });
     }
   }
@@ -246,17 +204,75 @@ class _MapScreenState extends State<MapScreen> {
   void _showBottomSheet() {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (BuildContext context) {
-        return Container(
-          color: Color(0xff6D605A),
-          child: Wrap(
-            children: <Widget>[
-              ListTile(
-                leading: Icon(Icons.logout, color: Colors.white),
-                title: Text('로그아웃', style: TextStyle(color: Colors.white)),
-                onTap: _logout,
-              ),
-            ],
+        return FractionallySizedBox(
+          heightFactor: 0.8,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Color(0xff6D605A),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              children: <Widget>[
+                SizedBox(height: 16),
+                _userImage != null
+                    ? CircleAvatar(
+                  radius: 120, // 두 배로 키운 사용자 이미지 크기
+                  backgroundImage: NetworkImage(_userImage!),
+                )
+                    : CircleAvatar(
+                  radius: 120, // 두 배로 키운 기본 이미지 크기
+                  child: Icon(Icons.person, size: 80),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  _userName ?? '사용자 이름',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+                SizedBox(height: 16),
+                Expanded(
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    children: [
+                      ListTile(
+                        leading: Icon(Icons.edit, color: Colors.white),
+                        title: Text('회원정보수정', style: TextStyle(color: Colors.white)),
+                        onTap: () {
+                          // Add your onTap functionality here
+                        },
+                      ),
+                      SizedBox(height: 16),
+                      ListTile(
+                        leading: Icon(Icons.group, color: Colors.white),
+                        title: Text('가족연결관리', style: TextStyle(color: Colors.white)),
+                        onTap: () {
+                          // Add your onTap functionality here
+                        },
+                      ),
+                      SizedBox(height: 16),
+                      ListTile(
+                        leading: Icon(Icons.help, color: Colors.white),
+                        title: Text('고객센터', style: TextStyle(color: Colors.white)),
+                        onTap: () {
+                          // Add your onTap functionality here
+                        },
+                      ),
+                      SizedBox(height: 16),
+                      ListTile(
+                        leading: Icon(Icons.logout, color: Colors.white),
+                        title: Text('로그아웃', style: TextStyle(color: Colors.white)),
+                        onTap: _logout,
+                      ),
+                      SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -381,10 +397,15 @@ class _MapScreenState extends State<MapScreen> {
               child: _buildBottomNavigationBarItem(Icons.home),
             ),
             GestureDetector(
-              onTap: () {
-
-              },
-              child: _buildBottomNavigationBarItem(Icons.photo_album),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SnsApp(),
+                    ),
+                  );
+                },
+                child: _buildBottomNavigationBarItem(Icons.photo_album)
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -403,11 +424,19 @@ class _MapScreenState extends State<MapScreen> {
               }, child: Image.asset('assets/img/wooki3.png', height: 60,),
             ),
             GestureDetector(
-              child: _buildBottomNavigationBarItem(Icons.photo_album),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SnsApp(),
+                    ),
+                  );
+                },
+                child: _buildBottomNavigationBarItem(Icons.photo_album)
             ),
             GestureDetector(
-              onTap: _showBottomSheet,
-              child: _buildBottomNavigationBarItem(Icons.more_horiz),
+                onTap: _showBottomSheet,
+                child: _buildBottomNavigationBarItem(Icons.more_horiz)
             ),
           ],
         ),
@@ -432,8 +461,4 @@ extension on double {
   double toRad() => this * pi / 180.0;
 }
 
-void main() {
-  runApp(MaterialApp(
-    home: MapScreen(userId: 'your_user_id'),
-  ));
-}
+// 맵메인
