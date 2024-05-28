@@ -5,8 +5,19 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-
 import '../firebase_options.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(const JoinEx2());
+}
 
 bool isValidName(String name) {
   String nameRegex = r'^[가-힣]{1,5}$|^[a-zA-Z]{1,10}$'; //한글로 1자에서 5자까지 또는 영어로 1자에서 10자까지
@@ -29,14 +40,6 @@ bool _isValidEmail(String email) {
   return RegExp(r'^[a-zA-Z0-9][a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(email);
 }//이메일 주소는 알파벳 또는 숫자로 시작해야 함, @ 다음에 도메인 이름
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(const JoinEx2());
-}
-
 class JoinEx2 extends StatelessWidget {
   const JoinEx2({Key? key}) : super(key: key);
 
@@ -56,11 +59,15 @@ class JoinScreen extends StatefulWidget {
 }
 
 class _JoinScreenState extends State<JoinScreen> {
+  File? _imageFile;
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
   final TextEditingController _name = TextEditingController();
   final TextEditingController _pwd = TextEditingController();
   final TextEditingController _pwd1 = TextEditingController();
   final TextEditingController _email = TextEditingController();
+  final picker = ImagePicker();
+
+  String _imageURL = '';
 
   void _showSnackBar(BuildContext context, String message) {
     if (message.isNotEmpty) {
@@ -72,7 +79,6 @@ class _JoinScreenState extends State<JoinScreen> {
 
   final TextEditingController _phone = TextEditingController();
   final TextEditingController _todayDateController = TextEditingController();
-
   final TextEditingController _verificationCodeController = TextEditingController();
   final String emailLabelText = "이메일";
   final String emailHintText = "이메일을 입력하세요";
@@ -108,11 +114,41 @@ class _JoinScreenState extends State<JoinScreen> {
     }
   }
 
+  // Future<void> _selectImage() async {
+  //   final pickedFile = await picker.getImage(source: ImageSource.gallery); // 갤러리에서 이미지 선택
+  //   setState(() {
+  //     _imageFile = File(pickedFile.path); // 선택한 이미지 파일의 경로 설정
+  //   });
+  // }
+
+  Future<void> _uploadImage() async {
+    try {
+      if (_imageFile != null) {
+        firebase_storage.Reference ref = firebase_storage.FirebaseStorage.instance.ref().child('images/${DateTime.now().toString()}');
+        firebase_storage.UploadTask uploadTask = ref.putFile(_imageFile!);
+        await uploadTask.whenComplete(() async {
+          _imageURL = await ref.getDownloadURL(); // 업로드된 이미지의 URL 가져오기
+        });
+      } else {
+        print('Image file is null. Upload task skipped.');
+      }
+    } catch (e) {
+      print('Error uploading image: $e');
+    }
+  }
+
   void _register() async {
-
-
     if (!_isVerified) {
       _showSnackBar(context,'먼저 인증을 완료하세요.');
+      return;
+    }
+
+    if (_name.text.isEmpty ||
+        _pwd.text.isEmpty ||
+        _pwd1.text.isEmpty ||
+        _email.text.isEmpty ||
+        _phone.text.isEmpty) {
+      _showSnackBar(context, '모든 필드를 입력하세요.');
       return;
     }
 
@@ -123,7 +159,7 @@ class _JoinScreenState extends State<JoinScreen> {
     }
 
     if (!isValidPassword(_pwd.text)) {
-      _showSnackBar(context,'비밀번호가 유효하지 않습니다. 비밀번호는 최소 8자 이상이어야 하며, 대문자, 소문자, 숫자, 특수문자 중에서 3종류 이상이 포함되어야 합니다.');
+      _showSnackBar(context,'비밀번호가 유효하지 않습니다. 비밀번호는 최소 8자 이상이어야 하며, 대문자, 소문자, 숫자, 특수문자 중에서 4종류 이상이 포함되어야 합니다.');
       return;
     }
 
@@ -137,6 +173,9 @@ class _JoinScreenState extends State<JoinScreen> {
       return;
     }
 
+      // 이미지 업로드
+      await _uploadImage();
+
     try {
       await _fs.collection('USERLIST').add({
         'name': _name.text,
@@ -144,8 +183,10 @@ class _JoinScreenState extends State<JoinScreen> {
         'email': _email.text,
         'phone': _phone.text,
         'todayDate': FieldValue.serverTimestamp(), // 서버 타임스탬프 사용
-        'imagePath': 'assets/place2.jpg', // 이미지 경로 추가
+        'imagePath': 'https://firebasestorage.googleapis.com/v0/b/wooki-3f810.appspot.com/o/images%2FprofileImage.jpg?alt=media&token=465c06f2-7f99-46d7-8b5b-f506166a247b', // 이미지 경로 추가
         'family': false, // family 필드 추가
+        'isAdmin' :false, // admin 필드 추가
+        'familyLinked' :false,
       });
 
       _showSnackBar(context,'가입되었음!!');
@@ -231,7 +272,6 @@ class _JoinScreenState extends State<JoinScreen> {
   void _checkEmail() async {
     if (_email.text.isEmpty) {
       _showSnackBar(context, '이메일을 입력하세요.');
-      print(context);
       return;
     }
 
@@ -245,6 +285,7 @@ class _JoinScreenState extends State<JoinScreen> {
 
       if (checkEmail.docs.isNotEmpty) {
         _showSnackBar(context,'이미 존재하는 이메일입니다.');
+        _email.clear();
       } else {
         _showSnackBar(context,'사용 가능한 이메일입니다.');
       }
