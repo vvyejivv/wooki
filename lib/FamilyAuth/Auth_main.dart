@@ -5,6 +5,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wooki/login/Logout.dart';
 
+//승인이꺼
+import '../CustomerServiceCenter/main.dart';
+import '../Schefuler/main.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -45,7 +49,10 @@ class _EmailAuthState extends State<EmailAuth> {
 
   Future<void> _fetchInvitations() async {
     String email = _myEmailController.text;
-    DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('USERLIST').doc(email).get();
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('USERLIST')
+        .doc(email)
+        .get();
 
     if (userDoc.exists) {
       Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
@@ -59,7 +66,8 @@ class _EmailAuthState extends State<EmailAuth> {
 
   Future<void> _inviteMember(String email) async {
     String myEmail = _myEmailController.text;
-    DocumentReference userDocRef = FirebaseFirestore.instance.collection('USERLIST').doc(myEmail);
+    DocumentReference userDocRef =
+        FirebaseFirestore.instance.collection('USERLIST').doc(myEmail);
 
     await FirebaseFirestore.instance.runTransaction((transaction) async {
       DocumentSnapshot userDoc = await transaction.get(userDocRef);
@@ -238,6 +246,37 @@ class _EmailAuthState extends State<EmailAuth> {
                 ],
               ),
               SizedBox(height: 40),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      // ElevatedButton이 클릭되었을 때, Navigator.push를 사용하여 다음 페이지로 이동합니다.
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => Customer()),
+                      );
+                    },
+                    child: Text('승인이꺼 Customer'),
+                  ),
+                ],
+              ),
+              SizedBox(height: 40),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      // ElevatedButton이 클릭되었을 때, Navigator.push를 사용하여 다음 페이지로 이동합니다.
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => Schefuler()),
+                      );
+                    },
+                    child: Text('승인이꺼 Schefuler'),
+                  ),
+                ],
+              ),
             ],
           ),
         ),

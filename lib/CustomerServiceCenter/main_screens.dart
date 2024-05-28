@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../login/Session.dart';
+import 'package:wooki/CustomerServiceCenter/user_chat_screen.dart';
+import 'admin_chat_screen.dart';
 import 'announcement.dart';
 import 'asked_questions.dart';
-import 'chat_screen.dart';
-import 'admin_chat_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'firestore_service.dart';
+
 
 class MainScreens extends StatefulWidget {
-  const MainScreens({super.key});
+  const MainScreens({Key? key}) : super(key: key);
 
   @override
   State<MainScreens> createState() => _MainScreensState();
@@ -15,11 +16,29 @@ class MainScreens extends StatefulWidget {
 
 class _MainScreensState extends State<MainScreens> with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  late SharedPreferences prefs;
+  String? email;
+  bool isAdmin = false;
+  late FirestoreService firestoreService;
 
   @override
   void initState() {
     super.initState();
+    firestoreService = FirestoreService();
     _tabController = TabController(length: 5, vsync: this);
+    _loadSessionData();
+  }
+
+  Future<void> _loadSessionData() async {
+    prefs = await SharedPreferences.getInstance();
+    String? userEmail = prefs.getString('email');
+    if (userEmail != null) {
+      bool adminStatus = await firestoreService.isAdminByEmail(userEmail);
+      setState(() {
+        email = userEmail;
+        isAdmin = adminStatus;
+      });
+    }
   }
 
   @override
@@ -30,9 +49,6 @@ class _MainScreensState extends State<MainScreens> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    var session = Provider.of<Session>(context);
-    //bool isAdmin = session.isAdmin; // Session에서 관리자인지 여부를 가져옵니다.
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('고객센터'),
@@ -59,7 +75,7 @@ class _MainScreensState extends State<MainScreens> with SingleTickerProviderStat
         children: [
           const Center(child: Text('Home Page')),
           const AskedQuestions(),
-          //isAdmin ? AdminChatScreen() : ChatScreen(), // 관리자인 경우 AdminChatScreen, 일반 사용자인 경우 ChatScreen
+          isAdmin ? AdminChatScreen() : UserChatScreen(),
           const Center(child: Text('Customer Voice Page')),
           const Announcement(),
         ],
