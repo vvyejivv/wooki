@@ -327,6 +327,10 @@ class _EmailAuthState extends State<EmailAuth> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFFFFFDEF),
+        title: Container(
+          margin: EdgeInsets.only(top: 60, bottom: 50),
+          child: Image.asset('assets/img/wooki_logo.png'),
+        ),
       ),
       backgroundColor: Color(0xFFFFFDEF),
       body: SingleChildScrollView(
@@ -347,21 +351,23 @@ class _EmailAuthState extends State<EmailAuth> {
                 children: [
                   Expanded(
                     child: TextField(
+                      enabled: false,
                       controller: _myEmailController,
                       decoration: InputDecoration(
-                        border: OutlineInputBorder(),
+                          filled: true, // 이 속성을 추가하여 배경색을 적용합니다.
+                          fillColor: Color(0xFFE0E0E0), // 원하는 배경색을 지정합니다.
+                        hintStyle: TextStyle(
+                          fontFamily: 'Pretendard-Regular',
+                          fontSize: 14,
+                          color: Colors.black,
+                        ),
+                          border: InputBorder.none
                       ),
                     ),
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      // 공유하기 버튼 클릭 시 동작
-                    },
-                    child: Text('공유하기'),
-                  ),
                 ],
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 40),
               Text(
                 '상대 이메일 or 전화번호',
                 style: TextStyle(
@@ -373,8 +379,15 @@ class _EmailAuthState extends State<EmailAuth> {
               TextField(
                 controller: _otherEmailController,
                 decoration: InputDecoration(
+                    filled: true, // 이 속성을 추가하여 배경색을 적용합니다.
+                    fillColor: Colors.white, // 원하는 배경색을 지정합니다.
                   hintText: '상대방의 이메일 또는 전화번호를 입력하세요',
-                  border: OutlineInputBorder(),
+                  hintStyle: TextStyle(
+                    fontFamily: 'Pretendard-Regular',
+                    fontSize: 14,
+                    color: Color(0xFF6D605A),
+                  ),
+                    border: InputBorder.none
                 ),
               ),
               SizedBox(height: 20),
@@ -382,20 +395,67 @@ class _EmailAuthState extends State<EmailAuth> {
                 onPressed: () {
                   _checkFamilyMember(_otherEmailController.text);
                 },
-                child: Text('발송'),
+                child: Text(
+                  '인증번호 보내기',
+                  style: TextStyle(
+                      fontFamily: 'Pretendard-SemiBold',
+                      fontSize: 15,
+                      color: Color(0xFF3A281F),
+                      fontWeight: FontWeight.bold)
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFFFFE458),
+                  foregroundColor: Color(0xFF3A281F),
+                  minimumSize: Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
               ),
               if (_isVerificationFieldVisible) ...[
+                SizedBox(height: 30),
+                Text(
+                  '인증번호 입력',
+                  style: TextStyle(
+                    fontFamily: 'Pretendard-Regular',
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 20),
                 TextField(
                   controller: _verificationCodeController,
                   decoration: InputDecoration(
-                    hintText: '인증번호를 입력하세요',
-                    border: OutlineInputBorder(),
+                      filled: true, // 이 속성을 추가하여 배경색을 적용합니다.
+                      fillColor: Colors.white, // 원하는 배경색을 지정합니다.
+                      hintText: '인증번호를 입력하세요',
+                      hintStyle: TextStyle(
+                        fontFamily: 'Pretendard-Regular',
+                        fontSize: 14,
+                        color: Color(0xFF6D605A),
+                      ),
+                      border: InputBorder.none
                   ),
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: _verifyCode,
-                  child: Text('확인'),
+                  child: Text(
+                      '확인',
+                    style: TextStyle(
+                        fontFamily: 'Pretendard-SemiBold',
+                        fontSize: 15,
+                        color: Color(0xFF3A281F),
+                        fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFFFFE458),
+                    foregroundColor: Color(0xFF3A281F),
+                    minimumSize: Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                  ),
                 ),
               ],
             ],
