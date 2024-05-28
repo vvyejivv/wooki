@@ -22,7 +22,6 @@ import 'package:wooki/find/search_id.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SharedPreferences.getInstance();
-  // await FirebaseAuth.instance.signOut(); //로그아웃
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
