@@ -1,17 +1,14 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:typed_data';
-import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:image/image.dart' as img;
-import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // 세션 관리 패키지
 import '../messenger/ChatRoomListPage.dart';
 import '../album/album_main.dart';
-import '../login/Login_main.dart';
+import '../login/Login_main.dart'; // 로그인 페이지 임포트
 
 class MapScreen extends StatefulWidget {
   final String userId;
@@ -24,7 +21,7 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   late GoogleMapController mapController;
-  LatLng _currentPosition = LatLng(37.4909987338, 126.720552076);
+  LatLng _currentPosition = LatLng(37.4909987338, 126.720552076); // 초기값 설정
   final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
   bool _isCentered = false;
   Marker? _currentLocationMarker;
@@ -32,9 +29,7 @@ class _MapScreenState extends State<MapScreen> {
   StreamSubscription<Position>? _positionStreamSubscription;
   StreamSubscription<MagnetometerEvent>? _magnetometerSubscription;
   String? _userName;
-  String? _imagePath;
   double _heading = 0;
-  Set<Marker> _markers = {};
   Set<Polygon> _polygons = {};
   double _currentZoom = 18.0;
 
@@ -51,43 +46,7 @@ class _MapScreenState extends State<MapScreen> {
     Map<String, dynamic> userData = userDoc.docs.first.data();
     setState(() {
       _userName = userData['name'];
-      _imagePath = userData['imagePath'];
     });
-    _getFamilyMarkers(userDoc.docs.first.id); // Fetch family markers after getting user data
-  }
-
-  Future<Uint8List> _getMarkerIcon() async {
-    if (_imagePath != null) {
-      final ByteData data = await NetworkAssetBundle(Uri.parse(_imagePath!)).load("");
-      final Uint8List bytes = data.buffer.asUint8List();
-      final img.Image? image = img.decodeImage(Uint8List.fromList(bytes));
-
-      if (image == null) {
-        throw Exception('Failed to decode image');
-      }
-
-      final img.Image resizedImage = img.copyResize(image, width: 100, height: 100);
-
-      // Create a circular mask
-      final img.Image circularImage = img.Image(height: 100, width: 100);
-      final int radius = 50;
-      final int centerX = 50;
-      final int centerY = 50;
-      for (int y = 0; y < 100; y++) {
-        for (int x = 0; x < 100; x++) {
-          if (pow(x - centerX, 2) + pow(y - centerY, 2) <= pow(radius, 2)) {
-            circularImage.setPixel(x, y, resizedImage.getPixel(x, y));
-          } else {
-            circularImage.setPixel(x, y, img.ColorInt8(0)); // Transparent color
-          }
-        }
-      }
-
-      return Uint8List.fromList(img.encodePng(circularImage));
-    } else {
-      final ByteData data = await rootBundle.load('assets/default_marker.png');
-      return data.buffer.asUint8List();
-    }
   }
 
   Future<void> _getCurrentLocation() async {
@@ -112,7 +71,7 @@ class _MapScreenState extends State<MapScreen> {
     }
 
     final position = await _geolocatorPlatform.getCurrentPosition();
-    _updatePosition(position);
+    _updatePosition(position); // 현재 위치를 초기 위치로 설정
 
     _positionStreamSubscription = _geolocatorPlatform.getPositionStream().listen((Position position) {
       _startUpdateTimer(position);
@@ -128,17 +87,14 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-  Future<void> _updatePosition(Position position) async {
+  void _updatePosition(Position position) {
     final newPosition = LatLng(position.latitude, position.longitude);
-    final iconBytes = await _getMarkerIcon();
-    final icon = BitmapDescriptor.fromBytes(iconBytes);
     if (mounted) {
       setState(() {
         _currentPosition = newPosition;
         _currentLocationMarker = Marker(
           markerId: MarkerId('currentLocation'),
           position: newPosition,
-          icon: icon,
           infoWindow: InfoWindow(title: _userName != null ? '$_userName의 위치' : '현재 위치'),
           rotation: _heading,
         );
@@ -147,27 +103,6 @@ class _MapScreenState extends State<MapScreen> {
           mapController.animateCamera(CameraUpdate.newLatLng(newPosition));
         }
         _updatePolygon();
-      });
-    }
-  }
-
-  Future<void> _getFamilyMarkers(String userId) async {
-    final mapDocs = await FirebaseFirestore.instance
-        .collection('USERLIST')
-        .doc(userId)
-        .collection('MAP')
-        .get();
-
-    for (var mapDoc in mapDocs.docs) {
-      final mapData = mapDoc.data();
-      final LatLng position = LatLng(mapData['Latitude'], mapData['Longitude']);
-
-      setState(() {
-        _markers.add(Marker(
-          markerId: MarkerId(mapDoc.id),
-          position: position,
-          infoWindow: InfoWindow(title: mapData['familyName']),
-        ));
       });
     }
   }
@@ -193,7 +128,7 @@ class _MapScreenState extends State<MapScreen> {
 
   void _updatePolygon() {
     const double baseViewAngle = 30.0;
-    const double baseViewDistance = 0.002;
+    const double baseViewDistance = 0.002; // 약 200m
 
     double adjustedViewDistance = baseViewDistance * pow(2, 18.0 - _currentZoom);
 
@@ -356,7 +291,7 @@ class _MapScreenState extends State<MapScreen> {
             onMapCreated: (controller) {
               setState(() {
                 mapController = controller;
-                _getCurrentLocation();
+                _getCurrentLocation(); // 초기 위치를 설정한 후, 지도에 반영
               });
             },
             initialCameraPosition: CameraPosition(
@@ -381,10 +316,15 @@ class _MapScreenState extends State<MapScreen> {
               child: _buildBottomNavigationBarItem(Icons.home),
             ),
             GestureDetector(
-              onTap: () {
-
-              },
-              child: _buildBottomNavigationBarItem(Icons.photo_album),
+                // onTap: () {
+                //   Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //       builder: (context) => SnsApp(),
+                //     ),
+                //   );
+                // },
+                child: _buildBottomNavigationBarItem(Icons.photo_album)
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -403,11 +343,19 @@ class _MapScreenState extends State<MapScreen> {
               }, child: Image.asset('assets/img/wooki3.png', height: 60,),
             ),
             GestureDetector(
-              child: _buildBottomNavigationBarItem(Icons.photo_album),
+                // onTap: () {
+                //   Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //       builder: (context) => SnsApp(),
+                //     ),
+                //   );
+                // },
+                child: _buildBottomNavigationBarItem(Icons.photo_album)
             ),
             GestureDetector(
-              onTap: _showBottomSheet,
-              child: _buildBottomNavigationBarItem(Icons.more_horiz),
+                onTap: _showBottomSheet,
+                child: _buildBottomNavigationBarItem(Icons.more_horiz)
             ),
           ],
         ),
@@ -430,10 +378,4 @@ class _MapScreenState extends State<MapScreen> {
 
 extension on double {
   double toRad() => this * pi / 180.0;
-}
-
-void main() {
-  runApp(MaterialApp(
-    home: MapScreen(userId: 'your_user_id'),
-  ));
 }
