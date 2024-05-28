@@ -5,7 +5,7 @@ import 'package:wooki/login/Login_main.dart';
 
 import '../firebase_options.dart';
 
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -17,6 +17,25 @@ class FirstMainHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        fontFamily: 'Pretendard', // 전체 앱에 적용될 기본 폰트 설정
+        textTheme: TextTheme(
+          bodyText1: TextStyle(fontFamily: 'Pretendard'),
+          bodyText2: TextStyle(fontFamily: 'Pretendard'),
+          headline1: TextStyle(fontFamily: 'Pretendard'),
+          headline2: TextStyle(fontFamily: 'Pretendard'),
+          headline3: TextStyle(fontFamily: 'Pretendard'),
+          headline4: TextStyle(fontFamily: 'Pretendard'),
+          headline5: TextStyle(fontFamily: 'Pretendard'),
+          headline6: TextStyle(fontFamily: 'Pretendard'),
+          subtitle1: TextStyle(fontFamily: 'Pretendard'),
+          subtitle2: TextStyle(fontFamily: 'Pretendard'),
+          caption: TextStyle(fontFamily: 'Pretendard'),
+          button: TextStyle(fontFamily: 'Pretendard'),
+          overline: TextStyle(fontFamily: 'Pretendard'),
+        ),
+      ),
       home: FirstMain(),
     );
   }
@@ -89,12 +108,6 @@ class _MyHomePageState extends State<FirstMain> {
                     fit: BoxFit.cover,
                   ),
                 ),
-                child: Center(
-                  // child: Text(
-                  //   '사랑하는 이들의 안전을 위한 실시간 위치 확인',
-                  //   style: TextStyle(color: Colors.white, fontSize: 18),
-                  // ),
-                ),
               ),
               // 두 번째 이미지 페이지
               Container(
@@ -103,12 +116,6 @@ class _MyHomePageState extends State<FirstMain> {
                     image: AssetImage('assets/img/home_A.png'),
                     fit: BoxFit.cover,
                   ),
-                ),
-                child: Center(
-                  // child: Text(
-                  //   '또 다른 페이지 내용',
-                  //   style: TextStyle(color: Colors.white, fontSize: 18),
-                  // ),
                 ),
               ),
               // 세 번째 이미지 페이지
@@ -119,18 +126,12 @@ class _MyHomePageState extends State<FirstMain> {
                     fit: BoxFit.cover,
                   ),
                 ),
-                child: Center(
-                  // child: Text(
-                  //   '또 다른 페이지 내용',
-                  //   style: TextStyle(color: Colors.white, fontSize: 18),
-                  // ),
-                ),
               ),
             ],
           ),
           // 아래쪽 페이지 인디케이터
           Positioned(
-            bottom: 80,
+            bottom: 120,
             left: 0,
             right: 0,
             child: Row(
@@ -157,8 +158,20 @@ class _MyHomePageState extends State<FirstMain> {
                     MaterialPageRoute(builder: (context) => LoginApp()),
                   );
                 },
-                child: Text('로그인하러가기'),
-              ),
+                child: Text(
+                  '로그인 하러가기',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xffFFDB1C),  // 버튼 배경색
+                  foregroundColor: Color(0xff3A281F),  // 버튼 텍스트 색상
+                  padding: EdgeInsets.symmetric(horizontal: 100, vertical: 15),  // 버튼 크기 조절
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),  // 버튼 모서리 둥글게 설정
+                  ),
+                  elevation: 5,  // 버튼 그림자 설정
+                ),
+              )
             ),
           ),
         ],
