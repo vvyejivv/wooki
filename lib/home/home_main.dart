@@ -21,19 +21,21 @@ class FirstMainHome extends StatelessWidget {
         primarySwatch: Colors.blue,
         fontFamily: 'Pretendard', // 전체 앱에 적용될 기본 폰트 설정
         textTheme: TextTheme(
-          bodyText1: TextStyle(fontFamily: 'Pretendard'),
-          bodyText2: TextStyle(fontFamily: 'Pretendard'),
-          headline1: TextStyle(fontFamily: 'Pretendard'),
-          headline2: TextStyle(fontFamily: 'Pretendard'),
-          headline3: TextStyle(fontFamily: 'Pretendard'),
-          headline4: TextStyle(fontFamily: 'Pretendard'),
-          headline5: TextStyle(fontFamily: 'Pretendard'),
-          headline6: TextStyle(fontFamily: 'Pretendard'),
-          subtitle1: TextStyle(fontFamily: 'Pretendard'),
-          subtitle2: TextStyle(fontFamily: 'Pretendard'),
-          caption: TextStyle(fontFamily: 'Pretendard'),
-          button: TextStyle(fontFamily: 'Pretendard'),
-          overline: TextStyle(fontFamily: 'Pretendard'),
+          bodyLarge: TextStyle(fontFamily: 'Pretendard'),
+          bodyMedium: TextStyle(fontFamily: 'Pretendard'),
+          bodySmall: TextStyle(fontFamily: 'Pretendard'),
+          displayLarge: TextStyle(fontFamily: 'Pretendard'),
+          displayMedium: TextStyle(fontFamily: 'Pretendard'),
+          displaySmall: TextStyle(fontFamily: 'Pretendard'),
+          headlineLarge: TextStyle(fontFamily: 'Pretendard'),
+          headlineMedium: TextStyle(fontFamily: 'Pretendard'),
+          headlineSmall: TextStyle(fontFamily: 'Pretendard'),
+          titleLarge: TextStyle(fontFamily: 'Pretendard'),
+          titleMedium: TextStyle(fontFamily: 'Pretendard'),
+          titleSmall: TextStyle(fontFamily: 'Pretendard'),
+          labelLarge: TextStyle(fontFamily: 'Pretendard'),
+          labelMedium: TextStyle(fontFamily: 'Pretendard'),
+          labelSmall: TextStyle(fontFamily: 'Pretendard'),
         ),
       ),
       home: FirstMain(),
@@ -43,10 +45,10 @@ class FirstMainHome extends StatelessWidget {
 
 class FirstMain extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _FirstMainState createState() => _FirstMainState();
 }
 
-class _MyHomePageState extends State<FirstMain> {
+class _FirstMainState extends State<FirstMain> {
   PageController _pageController = PageController();
   int _currentPage = 0;
   final int _totalPages = 3;
@@ -151,27 +153,27 @@ class _MyHomePageState extends State<FirstMain> {
             left: 0,
             right: 0,
             child: Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => LoginApp()),
-                  );
-                },
-                child: Text(
-                  '로그인 하러가기',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xffFFDB1C),  // 버튼 배경색
-                  foregroundColor: Color(0xff3A281F),  // 버튼 텍스트 색상
-                  padding: EdgeInsets.symmetric(horizontal: 100, vertical: 15),  // 버튼 크기 조절
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),  // 버튼 모서리 둥글게 설정
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginApp()),
+                    );
+                  },
+                  child: Text(
+                    '로그인 하러가기',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  elevation: 5,  // 버튼 그림자 설정
-                ),
-              )
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xffFFDB1C),  // 버튼 배경색
+                    foregroundColor: Color(0xff3A281F),  // 버튼 텍스트 색상
+                    padding: EdgeInsets.symmetric(horizontal: 100, vertical: 15),  // 버튼 크기 조절
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),  // 버튼 모서리 둥글게 설정
+                    ),
+                    elevation: 5,  // 버튼 그림자 설정
+                  ),
+                )
             ),
           ),
         ],
