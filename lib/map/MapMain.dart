@@ -383,7 +383,7 @@ class _MapScreenState extends State<MapScreen> {
         .get();
     Map<String, dynamic> userData = userDoc.docs.first.data();
 
-    bool familyLinked = userData['familyLinked'];
+    bool familyLinked = userData['familyLinked'] ?? false;
 
     showModalBottomSheet(
       context: context,
@@ -421,10 +421,12 @@ class _MapScreenState extends State<MapScreen> {
                       itemBuilder: (context, index) {
                         var familyData = familyDocs[index].data() as Map<String, dynamic>;
                         bool isSwitchOn = _switchValues[familyDocs[index].id] ?? false;
+                        String familyName = familyData['familyName'] ?? 'Unknown';
+                        String imagePath = familyData['imagePath'] ?? 'default_image_path'; // 기본 이미지 경로를 사용
 
                         return SwitchListTile(
                           title: Text(
-                            familyData['familyName'],
+                            familyName,
                             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
                           ),
                           value: isSwitchOn,
@@ -447,6 +449,13 @@ class _MapScreenState extends State<MapScreen> {
                                 .update({'isSwitchOn': value});
                           },
                           activeColor: Colors.blue,
+                          secondary: imagePath != 'default_image_path'
+                              ? CircleAvatar(
+                            backgroundImage: NetworkImage(imagePath),
+                          )
+                              : CircleAvatar(
+                            child: Icon(Icons.person),
+                          ),
                         );
                       },
                     ),
