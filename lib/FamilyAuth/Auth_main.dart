@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import 'package:mailer/smtp_server/gmail.dart';
+import 'package:wooki/map/MapMain.dart'; // MapScreen 임포트 추가
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +32,8 @@ class EmailAuth extends StatefulWidget {
 class _EmailAuthState extends State<EmailAuth> {
   final TextEditingController _myEmailController = TextEditingController();
   final TextEditingController _otherEmailController = TextEditingController();
-  final TextEditingController _verificationCodeController = TextEditingController();
+  final TextEditingController _verificationCodeController =
+  TextEditingController();
   final String serverUrl = 'http://10.0.2.2:4000/send-sms';
   String? selectedEmail;
   List<String> invitations = [];
@@ -39,6 +41,7 @@ class _EmailAuthState extends State<EmailAuth> {
   bool _isVerificationFieldVisible = false;
   String? _myDocId;
   String? _otherDocId;
+  String? _key;
 
   @override
   void initState() {
@@ -76,7 +79,8 @@ class _EmailAuthState extends State<EmailAuth> {
 
   Future<void> _inviteMember(String email) async {
     String myEmail = _myEmailController.text;
-    DocumentReference userDocRef = FirebaseFirestore.instance.collection('USERLIST').doc(_myDocId);
+    DocumentReference userDocRef =
+    FirebaseFirestore.instance.collection('USERLIST').doc(_myDocId);
 
     await FirebaseFirestore.instance.runTransaction((transaction) async {
       DocumentSnapshot userDoc = await transaction.get(userDocRef);
@@ -211,6 +215,13 @@ class _EmailAuthState extends State<EmailAuth> {
     if (_verificationCodeController.text == _verificationCode) {
       await _addFamilyMember(_myDocId, _otherDocId);
       await _updateFamilyLinked(_myDocId, _otherDocId);
+      await _updateKeyFromOtherUser(_myDocId, _otherDocId); // key 업데이트
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MapScreen(userId: _myEmailController.text),
+        ),
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('인증번호가 틀렸습니다.')),
@@ -220,8 +231,14 @@ class _EmailAuthState extends State<EmailAuth> {
 
   Future<void> _addFamilyMember(String? myDocId, String? otherDocId) async {
     if (myDocId != null && otherDocId != null) {
-      DocumentSnapshot myUserDocSnapshot = await FirebaseFirestore.instance.collection('USERLIST').doc(myDocId).get();
-      DocumentSnapshot otherUserDocSnapshot = await FirebaseFirestore.instance.collection('USERLIST').doc(otherDocId).get();
+      DocumentSnapshot myUserDocSnapshot = await FirebaseFirestore.instance
+          .collection('USERLIST')
+          .doc(myDocId)
+          .get();
+      DocumentSnapshot otherUserDocSnapshot = await FirebaseFirestore.instance
+          .collection('USERLIST')
+          .doc(otherDocId)
+          .get();
 
       if (myUserDocSnapshot.exists && otherUserDocSnapshot.exists) {
         var myUserEmail = myUserDocSnapshot['email'];
@@ -229,20 +246,6 @@ class _EmailAuthState extends State<EmailAuth> {
 
         var otherUserEmail = otherUserDocSnapshot['email'];
         var otherUserName = otherUserDocSnapshot['name'];
-
-        // 현재 사용자의 FAMILY 서브컬렉션에 상대방 정보 추가
-        await FirebaseFirestore.instance.collection('USERLIST').doc(myDocId).collection('FAMILY').add({
-          'familyEmail': otherUserEmail,
-          'familyName': otherUserName,
-          'addedAt': FieldValue.serverTimestamp(), // 추가된 시간
-        });
-
-        // 상대방의 FAMILY 서브컬렉션에 현재 사용자 정보 추가
-        await FirebaseFirestore.instance.collection('USERLIST').doc(otherDocId).collection('FAMILY').add({
-          'familyEmail': myUserEmail,
-          'familyName': myUserName,
-          'addedAt': FieldValue.serverTimestamp(), // 추가된 시간
-        });
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('가족 구성원이 추가되었습니다.')),
@@ -267,8 +270,30 @@ class _EmailAuthState extends State<EmailAuth> {
 
   Future<void> _updateFamilyLinked(String? myDocId, String? otherDocId) async {
     if (myDocId != null && otherDocId != null) {
-      await FirebaseFirestore.instance.collection('USERLIST').doc(myDocId).update({'familyLinked': true});
-      await FirebaseFirestore.instance.collection('USERLIST').doc(otherDocId).update({'familyLinked': true});
+      await FirebaseFirestore.instance
+          .collection('USERLIST')
+          .doc(myDocId)
+          .update({'familyLinked': true});
+      await FirebaseFirestore.instance
+          .collection('USERLIST')
+          .doc(otherDocId)
+          .update({'familyLinked': true});
+    }
+  }
+
+  Future<void> _updateKeyFromOtherUser(String? myDocId, String? otherDocId) async {
+    if (myDocId != null && otherDocId != null) {
+      DocumentSnapshot otherUserDocSnapshot = await FirebaseFirestore.instance
+          .collection('USERLIST')
+          .doc(otherDocId)
+          .get();
+      if (otherUserDocSnapshot.exists) {
+        var otherUserKey = otherUserDocSnapshot['key'];
+        await FirebaseFirestore.instance
+            .collection('USERLIST')
+            .doc(myDocId)
+            .update({'key': otherUserKey, 'familyLinked': true});
+      }
     }
   }
 
@@ -322,6 +347,30 @@ class _EmailAuthState extends State<EmailAuth> {
     );
   }
 
+  Future<void> _createRoom() async {
+    String key = _generateRoomKey();
+    await FirebaseFirestore.instance
+        .collection('USERLIST')
+        .doc(_myDocId)
+        .update({'key': key, 'familyLinked': true});
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('방이 생성되었습니다. 키: $key')),
+    );
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => MapScreen(userId: _myEmailController.text)), // 이메일을 넘기도록 수정
+    );
+  }
+
+  String _generateRoomKey() {
+    Random random = Random();
+    const String chars =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    return String.fromCharCodes(
+      Iterable.generate(12, (_) => chars.codeUnitAt(random.nextInt(chars.length))),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -356,13 +405,12 @@ class _EmailAuthState extends State<EmailAuth> {
                       decoration: InputDecoration(
                           filled: true, // 이 속성을 추가하여 배경색을 적용합니다.
                           fillColor: Color(0xFFE0E0E0), // 원하는 배경색을 지정합니다.
-                        hintStyle: TextStyle(
-                          fontFamily: 'Pretendard-Regular',
-                          fontSize: 14,
-                          color: Colors.black,
-                        ),
-                          border: InputBorder.none
-                      ),
+                          hintStyle: TextStyle(
+                            fontFamily: 'Pretendard-Regular',
+                            fontSize: 14,
+                            color: Colors.black,
+                          ),
+                          border: InputBorder.none),
                     ),
                   ),
                 ],
@@ -379,30 +427,29 @@ class _EmailAuthState extends State<EmailAuth> {
               TextField(
                 controller: _otherEmailController,
                 decoration: InputDecoration(
-                    filled: true, // 이 속성을 추가하여 배경색을 적용합니다.
-                    fillColor: Colors.white, // 원하는 배경색을 지정합니다.
-                  hintText: '상대방의 이메일 또는 전화번호를 입력하세요',
-                  hintStyle: TextStyle(
-                    fontFamily: 'Pretendard-Regular',
-                    fontSize: 14,
-                    color: Color(0xFF6D605A),
-                  ),
-                    border: InputBorder.none
-                ),
+                    filled: true,
+                    // 이 속성을 추가하여 배경색을 적용합니다.
+                    fillColor: Colors.white,
+                    // 원하는 배경색을 지정합니다.
+                    hintText: '상대방의 이메일 또는 전화번호를 입력하세요',
+                    hintStyle: TextStyle(
+                      fontFamily: 'Pretendard-Regular',
+                      fontSize: 14,
+                      color: Color(0xFF6D605A),
+                    ),
+                    border: InputBorder.none),
               ),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
                   _checkFamilyMember(_otherEmailController.text);
                 },
-                child: Text(
-                  '인증번호 보내기',
-                  style: TextStyle(
-                      fontFamily: 'Pretendard-SemiBold',
-                      fontSize: 15,
-                      color: Color(0xFF3A281F),
-                      fontWeight: FontWeight.bold)
-                ),
+                child: Text('인증번호 보내기',
+                    style: TextStyle(
+                        fontFamily: 'Pretendard-SemiBold',
+                        fontSize: 15,
+                        color: Color(0xFF3A281F),
+                        fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFFFFE458),
                   foregroundColor: Color(0xFF3A281F),
@@ -426,22 +473,23 @@ class _EmailAuthState extends State<EmailAuth> {
                 TextField(
                   controller: _verificationCodeController,
                   decoration: InputDecoration(
-                      filled: true, // 이 속성을 추가하여 배경색을 적용합니다.
-                      fillColor: Colors.white, // 원하는 배경색을 지정합니다.
+                      filled: true,
+                      // 이 속성을 추가하여 배경색을 적용합니다.
+                      fillColor: Colors.white,
+                      // 원하는 배경색을 지정합니다.
                       hintText: '인증번호를 입력하세요',
                       hintStyle: TextStyle(
                         fontFamily: 'Pretendard-Regular',
                         fontSize: 14,
                         color: Color(0xFF6D605A),
                       ),
-                      border: InputBorder.none
-                  ),
+                      border: InputBorder.none),
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: _verifyCode,
                   child: Text(
-                      '확인',
+                    '확인',
                     style: TextStyle(
                         fontFamily: 'Pretendard-SemiBold',
                         fontSize: 15,
@@ -458,6 +506,17 @@ class _EmailAuthState extends State<EmailAuth> {
                   ),
                 ),
               ],
+              ElevatedButton(
+                onPressed: _createRoom,
+                child: Text(
+                  '방 만들기',
+                  style: TextStyle(
+                      fontFamily: 'Pretendard-SemiBold',
+                      fontSize: 15,
+                      color: Color(0xFF3A281F),
+                      fontWeight: FontWeight.bold),
+                ),
+              )
             ],
           ),
         ),
