@@ -68,7 +68,7 @@ class _PostListPageState extends State<PostListPage> {
     });
   }
 
-  Future<String> _getUserName(String email) async {
+  Future<Map<String, String>> _getUserData(String email) async {
     var userDoc = await FirebaseFirestore.instance
         .collection('USERLIST')
         .where('email', isEqualTo: email)
@@ -76,9 +76,14 @@ class _PostListPageState extends State<PostListPage> {
         .get();
 
     if (userDoc.docs.isNotEmpty) {
-      return userDoc.docs.first['name'];
+      return {
+        'name': userDoc.docs.first['name'],
+        'imagePath': userDoc.docs.first.data().containsKey('imagePath')
+            ? userDoc.docs.first['imagePath']
+            : ''
+      };
     } else {
-      return 'Unknown User';
+      return {'name': 'Unknown User', 'imagePath': ''};
     }
   }
 
@@ -125,11 +130,12 @@ class _PostListPageState extends State<PostListPage> {
                           top: Radius.circular(20),
                         ),
                       ),
-                      padding: EdgeInsets.all(16),
+                      padding: EdgeInsets.only(
+                          left: 16.0, right: 16.0, bottom: 16.0, top: 4.0),
                       child: Column(
                         children: [
-                          FutureBuilder<String>(
-                            future: _getUserName(email),
+                          FutureBuilder<Map<String, String>>(
+                            future: _getUserData(email),
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
@@ -139,16 +145,31 @@ class _PostListPageState extends State<PostListPage> {
                                 return Center(
                                     child: Text('Error: ${snapshot.error}'));
                               } else {
+                                final userData = snapshot.data!;
+                                final userName = userData['name']!;
+                                final userImage = userData['imagePath']!;
+
                                 return Column(
                                   children: [
                                     ListTile(
-                                      title: Text(snapshot.data!),
+                                      contentPadding:
+                                      EdgeInsets.only(left: 8.0),
+                                      leading: userImage.isNotEmpty
+                                          ? CircleAvatar(
+                                        backgroundImage:
+                                        NetworkImage(userImage),
+                                      )
+                                          : CircleAvatar(
+                                        child: Icon(Icons.person),
+                                      ),
+                                      title: Text(userName),
                                       subtitle: Text(cdatetime),
                                       trailing: Transform.translate(
-                                        offset: Offset(15, 0), // 오른쪽으로 더 붙이기
+                                        offset: Offset(10, 0), // 오른쪽으로 더 붙이기
                                         child: IconButton(
                                           onPressed: () {
-                                            Navigator.of(context).pop(); // 모달 창 닫기
+                                            Navigator.of(context)
+                                                .pop(); // 모달 창 닫기
                                           },
                                           icon: Icon(Icons.close),
                                         ),
@@ -157,19 +178,22 @@ class _PostListPageState extends State<PostListPage> {
                                     Container(
                                       decoration: BoxDecoration(
                                         border: Border(
-                                          bottom: BorderSide(color: Colors.grey), // 하단 테두리만 설정
+                                          bottom: BorderSide(
+                                              color: Colors.grey), // 하단 테두리만 설정
                                         ),
                                       ),
                                       child: Column(
                                         children: [
                                           Container(
-                                            height: 300, // 이미지가 더 크게 보이도록 높이를 늘림
+                                            height: 300,
+                                            // 이미지가 더 크게 보이도록 높이를 늘림
                                             child: Stack(
                                               children: [
                                                 PageView.builder(
                                                   controller: pageController,
                                                   itemCount: imageUrls.length,
-                                                  itemBuilder: (context, index) {
+                                                  itemBuilder:
+                                                      (context, index) {
                                                     return ClipRRect(
                                                       child: Image.network(
                                                         imageUrls[index],
@@ -184,11 +208,15 @@ class _PostListPageState extends State<PostListPage> {
                                                   bottom: 8,
                                                   right: 8,
                                                   child: Container(
-                                                    padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                                                    padding:
+                                                    EdgeInsets.symmetric(
+                                                        vertical: 4,
+                                                        horizontal: 8),
                                                     color: Colors.black54,
                                                     child: AnimatedBuilder(
                                                       animation: pageController,
-                                                      builder: (context, child) {
+                                                      builder:
+                                                          (context, child) {
                                                         return Text(
                                                           '${(pageController.page?.toInt() ?? 0) + 1}/${imageUrls.length}',
                                                           style: TextStyle(
@@ -210,7 +238,6 @@ class _PostListPageState extends State<PostListPage> {
                                     ),
                                   ],
                                 );
-
                               }
                             },
                           ),
@@ -225,7 +252,7 @@ class _PostListPageState extends State<PostListPage> {
                               if (snapshot.hasError) {
                                 return Center(
                                     child:
-                                        Text('댓글 불러오기 오류: ${snapshot.error}'));
+                                    Text('댓글 불러오기 오류: ${snapshot.error}'));
                               }
 
                               if (snapshot.connectionState ==
@@ -246,14 +273,14 @@ class _PostListPageState extends State<PostListPage> {
                                   final commentContent = comment['comment'];
                                   final commentEmail = comment['email'];
                                   final commentTimestamp =
-                                      (comment['timestamp'] as Timestamp)
-                                          .toDate();
+                                  (comment['timestamp'] as Timestamp)
+                                      .toDate();
                                   final commentDate =
-                                      DateFormat('yyyy-MM-dd HH:mm')
-                                          .format(commentTimestamp);
+                                  DateFormat('yyyy-MM-dd HH:mm')
+                                      .format(commentTimestamp);
 
-                                  return FutureBuilder<String>(
-                                    future: _getUserName(commentEmail),
+                                  return FutureBuilder<Map<String, String>>(
+                                    future: _getUserData(commentEmail),
                                     builder: (context, snapshot) {
                                       if (snapshot.connectionState ==
                                           ConnectionState.waiting) {
@@ -264,36 +291,83 @@ class _PostListPageState extends State<PostListPage> {
                                             child: Text(
                                                 'Error: ${snapshot.error}'));
                                       } else {
+                                        final userData = snapshot.data!;
+                                        final userName = userData['name']!;
+                                        final userImage =
+                                        userData['imagePath']!;
+
                                         return ListTile(
-                                          title: Text(snapshot.data!),
+                                          contentPadding:
+                                          EdgeInsets.only(left: 8.0),
+                                          leading: userImage.isNotEmpty
+                                              ? CircleAvatar(
+                                            backgroundImage:
+                                            NetworkImage(userImage),
+                                          )
+                                              : CircleAvatar(
+                                            child: Icon(Icons.person),
+                                          ),
+                                          title: Text(userName),
                                           subtitle: Text(commentContent),
                                           trailing: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              Text(commentDate,
-                                                  style: TextStyle(
-                                                      fontSize: 10,
-                                                      color: Colors.grey)),
                                               if (commentEmail ==
                                                   _currentUserEmail) ...[
-                                                IconButton(
-                                                  icon: Icon(Icons.edit),
-                                                  onPressed: () {
-                                                    _editComment(
-                                                        context,
-                                                        postId,
-                                                        comment.id,
-                                                        commentContent);
+                                                Text(commentDate,
+                                                    style: TextStyle(
+                                                        fontSize: 10,
+                                                        color: Colors.grey)),
+                                                PopupMenuButton<String>(
+                                                  onSelected: (String result) {
+                                                    if (result == 'edit') {
+                                                      _editComment(
+                                                          context,
+                                                          postId,
+                                                          comment.id,
+                                                          commentContent);
+                                                    } else if (result ==
+                                                        'delete') {
+                                                      _confirmDeleteComment(
+                                                          context,
+                                                          postId,
+                                                          comment.id);
+                                                    }
                                                   },
-                                                ),
-                                                IconButton(
-                                                  icon: Icon(Icons.delete),
-                                                  onPressed: () {
-                                                    _confirmDeleteComment(
-                                                        context,
-                                                        postId,
-                                                        comment.id);
-                                                  },
+                                                  itemBuilder: (BuildContext
+                                                  context) =>
+                                                  <PopupMenuEntry<String>>[
+                                                    PopupMenuItem<String>(
+                                                      value: 'edit',
+                                                      child: Text('수정'),
+                                                    ),
+                                                    PopupMenuItem<String>(
+                                                      value: 'delete',
+                                                      child: Text('삭제'),
+                                                    ),
+                                                  ],
+                                                  icon: Icon(Icons.more_vert),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                    BorderRadius.all(
+                                                        Radius.circular(
+                                                            8.0)),
+                                                  ),
+                                                  color: Color(
+                                                      0xfffffff4), // 여기에 원하는 배경색을 지정
+                                                )
+                                              ] else ...[
+                                                Padding(
+                                                  padding: EdgeInsets.only(
+                                                      right: 12.0),
+                                                  // 왼쪽 패딩을 4.0으로 설정
+                                                  child: Text(
+                                                    commentDate,
+                                                    style: TextStyle(
+                                                      fontSize: 10,
+                                                      color: Colors.grey,
+                                                    ),
+                                                  ),
                                                 ),
                                               ],
                                             ],
@@ -312,7 +386,7 @@ class _PostListPageState extends State<PostListPage> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(left: 16.0, right: 32.0),
+                  padding: const EdgeInsets.only(left: 16.0, right: 16.0),
                   child: Stack(
                     alignment: Alignment.centerRight,
                     children: [
@@ -321,15 +395,19 @@ class _PostListPageState extends State<PostListPage> {
                         decoration: InputDecoration(
                           hintText: '   댓글을 입력하세요...',
                           border: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey), // 기본 하단 테두리 색상
+                            borderSide:
+                            BorderSide(color: Colors.grey), // 기본 하단 테두리 색상
                           ),
                           enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey), // 비활성 상태 하단 테두리 색상
+                            borderSide: BorderSide(
+                                color: Colors.grey), // 비활성 상태 하단 테두리 색상
                           ),
                           focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.amber), // 활성 상태 하단 테두리 색상
+                            borderSide: BorderSide(
+                                color: Colors.amber), // 활성 상태 하단 테두리 색상
                           ),
-                          contentPadding: EdgeInsets.only(right: 48.0), // 텍스트와 버튼 간격 조절
+                          contentPadding:
+                          EdgeInsets.only(right: 48.0), // 텍스트와 버튼 간격 조절
                         ),
                         maxLines: 1,
                       ),
@@ -354,13 +432,23 @@ class _PostListPageState extends State<PostListPage> {
                             }
                           },
                           child: Text('작성'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.amber,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                Colors.transparent),
+                            foregroundColor: MaterialStateProperty.all<Color>(
+                                Colors.black54),
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
-                            padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+                            padding:
+                            MaterialStateProperty.all<EdgeInsetsGeometry>(
+                              EdgeInsets.symmetric(
+                                  vertical: 12.0, horizontal: 16.0),
+                            ),
+                            elevation: MaterialStateProperty.all<double>(0),
                           ),
                         ),
                       ),
@@ -414,7 +502,7 @@ class _PostListPageState extends State<PostListPage> {
   void _editComment(BuildContext context, String postId, String commentId,
       String currentContent) {
     TextEditingController _editCommentController =
-        TextEditingController(text: currentContent);
+    TextEditingController(text: currentContent);
 
     showDialog(
       context: context,
@@ -453,7 +541,7 @@ class _PostListPageState extends State<PostListPage> {
                     ElevatedButton(
                       onPressed: () async {
                         String editedComment =
-                            _editCommentController.text.trim();
+                        _editCommentController.text.trim();
                         if (editedComment.isNotEmpty) {
                           await FirebaseFirestore.instance
                               .collection('posts')
@@ -495,7 +583,7 @@ class _PostListPageState extends State<PostListPage> {
   void _editPost(BuildContext context, String postId, String currentContent,
       List<String> currentImageUrls) {
     TextEditingController _editPostController =
-        TextEditingController(text: currentContent);
+    TextEditingController(text: currentContent);
     List<File> newImages = [];
     List<String> newImageUrls = List.from(currentImageUrls);
 
@@ -535,7 +623,7 @@ class _PostListPageState extends State<PostListPage> {
                         ElevatedButton(
                           onPressed: () async {
                             FilePickerResult? result =
-                                await FilePicker.platform.pickFiles(
+                            await FilePicker.platform.pickFiles(
                               type: FileType.image,
                               allowMultiple: true,
                             );
@@ -591,7 +679,7 @@ class _PostListPageState extends State<PostListPage> {
                         ElevatedButton(
                           onPressed: () async {
                             String editedContent =
-                                _editPostController.text.trim();
+                            _editPostController.text.trim();
                             if (editedContent.isNotEmpty) {
                               if (newImages.isNotEmpty) {
                                 newImageUrls = await _uploadImages(newImages);
@@ -726,7 +814,7 @@ class _PostListPageState extends State<PostListPage> {
                 final imageUrls = List<String>.from(post['imageUrls']);
                 final cdatetime = (post['cdatetime'] as Timestamp).toDate();
                 final formattedDate =
-                    DateFormat('yyyy-MM-dd HH:mm').format(cdatetime); // 날짜 포맷팅
+                DateFormat('yyyy-MM-dd HH:mm').format(cdatetime); // 날짜 포맷팅
                 final pageController = PageController();
                 final postId = post.id; // Post ID 가져오기
 
@@ -741,8 +829,8 @@ class _PostListPageState extends State<PostListPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        FutureBuilder<String>(
-                          future: _getUserName(email),
+                        FutureBuilder<Map<String, String>>(
+                          future: _getUserData(email),
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
@@ -750,35 +838,72 @@ class _PostListPageState extends State<PostListPage> {
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
                             } else {
+                              final userData = snapshot.data!;
+                              final userName = userData['name']!;
+                              final userImage = userData['imagePath']!;
+
                               return Row(
                                 children: [
-                                  Text(
-                                    snapshot.data!,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
+                                  Expanded(
+                                    child: ListTile(
+                                      contentPadding: EdgeInsets.only(left: 0.0),
+                                      leading: userImage.isNotEmpty
+                                          ? CircleAvatar(
+                                        backgroundImage:
+                                        NetworkImage(userImage),
+                                      )
+                                          : CircleAvatar(
+                                        child: Icon(Icons.person),
+                                      ),
+                                      title: Text(
+                                        userName,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      subtitle: Text(formattedDate),
                                     ),
                                   ),
-                                  Spacer(),
-                                  Text(
-                                    formattedDate,
-                                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                                  ),
+                                  if (email == _currentUserEmail)
+                                    Padding(
+                                      padding: EdgeInsets.only(left: 16.0),
+                                      child: PopupMenuButton<String>(
+                                        onSelected: (String result) {
+                                          if (result == 'edit') {
+                                            _editPost(context, postId, content, imageUrls);
+                                          } else if (result == 'delete') {
+                                            _confirmDeletePost(context, postId);
+                                          }
+                                        },
+                                        itemBuilder: (BuildContext context) =>
+                                        <PopupMenuEntry<String>>[
+                                          PopupMenuItem<String>(
+                                            value: 'edit',
+                                            child: Text('수정'),
+                                          ),
+                                          PopupMenuItem<String>(
+                                            value: 'delete',
+                                            child: Text('삭제'),
+                                          ),
+                                        ],
+                                        icon: Icon(Icons.more_vert),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(8.0)),
+                                        ),
+                                        color: Color(0xfffffff1), // 원하는 배경색 지정
+                                      ),
+                                    ),
                                 ],
                               );
                             }
                           },
                         ),
                         SizedBox(height: 8),
-                        Text(
-                          content,
-                          style: TextStyle(fontSize: 14),
-                        ),
-                        SizedBox(height: 8),
                         GestureDetector(
                           onTap: () {
-                            _showCommentSheet(context, postId, email, content,
-                                imageUrls, formattedDate);
+                            _showCommentSheet(context, postId, email, content, imageUrls, formattedDate);
                           },
                           child: Stack(
                             children: [
@@ -823,37 +948,28 @@ class _PostListPageState extends State<PostListPage> {
                             ],
                           ),
                         ),
-                        SizedBox(height: 8),
-                        if (email == _currentUserEmail) ...[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
+                        SizedBox(height: 16.0),
+                        Padding(
+                          padding: EdgeInsets.only(left: 10.0),
+                          child: Row(
                             children: [
-                              SizedBox(width: 2,),
+                              SizedBox(width: 6,),
+                              Expanded(
+                                child: Text(
+                                  content,
+                                  style: TextStyle(fontSize: 14),
+                                ),
+                              ),
                               IconButton(
-                                icon:Icon(Icons.chat_bubble_outline),
+                                icon: Icon(Icons.chat_bubble_outline),
                                 color: Colors.grey,
                                 onPressed: () {
-                                  _showCommentSheet(context, postId, email, content,
-                                      imageUrls, formattedDate);
-                                },
-                              ),
-                              Spacer(),
-                              IconButton(
-                                icon: Icon(Icons.edit),
-                                onPressed: () {
-                                  _editPost(
-                                      context, postId, content, imageUrls);
-                                },
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.delete),
-                                onPressed: () {
-                                  _confirmDeletePost(context, postId);
+                                  _showCommentSheet(context, postId, email, content, imageUrls, formattedDate);
                                 },
                               ),
                             ],
                           ),
-                        ],
+                        ),
                       ],
                     ),
                   ),
