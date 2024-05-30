@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +15,7 @@ import '../messenger/ChatRoomListPage.dart';
 import '../album/album_main.dart';
 import '../login/Login_main.dart';
 import 'package:wooki/Schefuler/main.dart';
+import '../Join/JoinEditDelete.dart';
 
 // main function to initialize Firebase and run the app
 void main() async {
@@ -46,7 +50,7 @@ class _MapScreenState extends State<MapScreen> {
   Set<Polygon> _polygons = {};
   double _currentZoom = 18.0;
   Map<String, bool> _switchValues = {};
-  Set<Marker> _markers = {}; // Set to store all markers
+  Set<Marker> _markers = {};
 
   @override
   void initState() {
@@ -68,7 +72,7 @@ class _MapScreenState extends State<MapScreen> {
         _userImage = userData['imagePath'];
       });
       _initializeCurrentPosition(userDoc.docs.first.id);
-      _initializeFamilyMarkers(userDoc.docs.first.id); // Initialize family markers
+      _initializeFamilyMarkers(userDoc.docs.first.id);
     } else {
       print('User document not found');
     }
@@ -146,6 +150,32 @@ class _MapScreenState extends State<MapScreen> {
     _savePositionToFirestore(position);
   }
 
+  Future<Uint8List> _loadNetworkImage(String imageUrl) async {
+    final http.Response response = await http.get(Uri.parse(imageUrl));
+    return response.bodyBytes;
+  }
+
+  Future<Uint8List> _getCircleAvatarBytes(String imageUrl) async {
+    Uint8List bytes = await _loadNetworkImage(imageUrl);
+    ui.Codec codec = await ui.instantiateImageCodec(bytes);
+    ui.FrameInfo frameInfo = await codec.getNextFrame();
+    ui.Image image = frameInfo.image;
+
+    final size = min(image.width, image.height);
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    final paint = Paint();
+    paint.isAntiAlias = true;
+    final path = Path()
+      ..addOval(Rect.fromLTWH(0, 0, size.toDouble(), size.toDouble()));
+    canvas.clipPath(path);
+    canvas.drawImage(image, Offset.zero, paint);
+    final picture = recorder.endRecording();
+    final img = await picture.toImage(size, size);
+    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+    return byteData!.buffer.asUint8List();
+  }
+
   void _startUpdateTimer(Position position) {
     _updateTimer?.cancel();
     _updateTimer = Timer(Duration(seconds: 5), () {
@@ -155,23 +185,28 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-  void _updatePosition(Position position) {
+  Future<void> _updatePosition(Position position) async {
     final newPosition = LatLng(position.latitude, position.longitude);
     if (mounted) {
-      setState(() {
-        _currentPosition = newPosition;
-        _currentLocationMarker = Marker(
-          markerId: MarkerId('currentLocation'),
-          position: newPosition,
-          infoWindow: InfoWindow(title: _userName != null ? '$_userName의 위치' : '현재 위치'),
-          rotation: _heading,
-        );
+      if (_userImage != null) {
+        final Uint8List imageBytes = await _getCircleAvatarBytes(_userImage!);
+        final icon = BitmapDescriptor.fromBytes(imageBytes);
+        setState(() {
+          _currentPosition = newPosition;
+          _currentLocationMarker = Marker(
+            markerId: MarkerId('currentLocation'),
+            position: newPosition,
+            icon: icon,
+            infoWindow: InfoWindow(title: _userName != null ? '$_userName의 위치' : '현재 위치'),
+            rotation: _heading,
+          );
 
-        if (_isCentered) {
-          mapController.animateCamera(CameraUpdate.newLatLng(newPosition));
-        }
-        _updatePolygon();
-      });
+          if (_isCentered) {
+            mapController.animateCamera(CameraUpdate.newLatLng(newPosition));
+          }
+          _updatePolygon();
+        });
+      }
     }
   }
 
@@ -279,11 +314,11 @@ class _MapScreenState extends State<MapScreen> {
                 SizedBox(height: 16),
                 _userImage != null
                     ? CircleAvatar(
-                  radius: 120, // 두 배로 키운 사용자 이미지 크기
+                  radius: 120,
                   backgroundImage: NetworkImage(_userImage!),
                 )
                     : CircleAvatar(
-                  radius: 120, // 두 배로 키운 기본 이미지 크기
+                  radius: 120,
                   child: Icon(Icons.person, size: 80),
                 ),
                 SizedBox(height: 16),
@@ -300,7 +335,11 @@ class _MapScreenState extends State<MapScreen> {
                         leading: Icon(Icons.edit, color: Colors.white),
                         title: Text('회원정보수정', style: TextStyle(color: Colors.white)),
                         onTap: () {
-                          // Add your onTap functionality here
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (context) => UserEditApp()),
+                                (Route<dynamic> route) => false,
+                          );
                         },
                       ),
                       SizedBox(height: 16),
@@ -384,7 +423,6 @@ class _MapScreenState extends State<MapScreen> {
                         bool isSwitchOn = _switchValues[familyDocs[index].id] ?? false;
 
                         return SwitchListTile(
-
                           title: Text(
                             familyData['familyName'],
                             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
@@ -421,7 +459,6 @@ class _MapScreenState extends State<MapScreen> {
       },
     );
   }
-
 
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
@@ -468,7 +505,10 @@ class _MapScreenState extends State<MapScreen> {
             onCameraMove: _onCameraMove,
             myLocationEnabled: true,
             myLocationButtonEnabled: true,
-            markers: {_currentLocationMarker!, ..._markers},
+            markers: {
+              if (_currentLocationMarker != null) _currentLocationMarker!,
+              ..._markers,
+            },
             polygons: _polygons,
           ),
         ],
