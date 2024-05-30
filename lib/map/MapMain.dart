@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:flutter/cupertino.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -10,6 +11,7 @@ import 'package:firebase_core/firebase_core.dart';
 import '../messenger/ChatRoomListPage.dart';
 import '../album/album_main.dart';
 import '../login/Login_main.dart';
+import 'package:wooki/Schefuler/main.dart';
 
 // main function to initialize Firebase and run the app
 void main() async {
@@ -43,32 +45,73 @@ class _MapScreenState extends State<MapScreen> {
   double _heading = 0;
   Set<Polygon> _polygons = {};
   double _currentZoom = 18.0;
+  Map<String, bool> _switchValues = {};
+  Set<Marker> _markers = {}; // Set to store all markers
 
   @override
   void initState() {
     super.initState();
-    _getUserName();
+    _initializeUserData();
     _getCurrentLocation();
     _listenToSensorEvents();
   }
 
-  Future<void> _getUserName() async {
-    try {
-      QuerySnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance
-          .collection('USERLIST')
-          .where('email', isEqualTo: widget.userId)
-          .get();
-      if (userDoc.docs.isNotEmpty) {
-        Map<String, dynamic> userData = userDoc.docs.first.data();
+  Future<void> _initializeUserData() async {
+    QuerySnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance
+        .collection('USERLIST')
+        .where('email', isEqualTo: widget.userId)
+        .get();
+    if (userDoc.docs.isNotEmpty) {
+      Map<String, dynamic> userData = userDoc.docs.first.data();
+      setState(() {
+        _userName = userData['name'];
+        _userImage = userData['imagePath'];
+      });
+      _initializeCurrentPosition(userDoc.docs.first.id);
+      _initializeFamilyMarkers(userDoc.docs.first.id); // Initialize family markers
+    } else {
+      print('User document not found');
+    }
+  }
+
+  Future<void> _initializeCurrentPosition(String userId) async {
+    DocumentSnapshot<Map<String, dynamic>> mapDoc = await FirebaseFirestore.instance
+        .collection('USERLIST')
+        .doc(userId)
+        .collection('MAP')
+        .doc('currentLocation')
+        .get();
+
+    if (mapDoc.exists) {
+      Map<String, dynamic>? mapData = mapDoc.data();
+      if (mapData != null) {
         setState(() {
-          _userName = userData['name'];
-          _userImage = userData['imagePath'];
+          _currentPosition = LatLng(mapData['latitude'], mapData['longitude']);
         });
-      } else {
-        print('User document not found');
       }
-    } catch (e) {
-      print('Error getting user data: $e');
+    }
+  }
+
+  Future<void> _initializeFamilyMarkers(String userId) async {
+    final familyCollection = await FirebaseFirestore.instance
+        .collection('USERLIST')
+        .doc(userId)
+        .collection('FAMILY')
+        .get();
+
+    if (familyCollection.docs.isNotEmpty) {
+      setState(() {
+        for (var familyDoc in familyCollection.docs) {
+          final familyData = familyDoc.data();
+          _switchValues[familyDoc.id] = familyData['isSwitchOn'] ?? false;
+          _markers.add(Marker(
+            markerId: MarkerId(familyDoc.id),
+            position: LatLng(familyData['latitude'], familyData['longitude']),
+            infoWindow: InfoWindow(title: familyData['familyName']),
+            visible: _switchValues[familyDoc.id] ?? false,
+          ));
+        }
+      });
     }
   }
 
@@ -99,6 +142,8 @@ class _MapScreenState extends State<MapScreen> {
     _positionStreamSubscription = _geolocatorPlatform.getPositionStream().listen((Position position) {
       _startUpdateTimer(position);
     });
+
+    _savePositionToFirestore(position);
   }
 
   void _startUpdateTimer(Position position) {
@@ -130,8 +175,21 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  Future<void> _savePositionToFirestore(Position position) async {
+    final mapRef = FirebaseFirestore.instance
+        .collection('USERLIST')
+        .doc(widget.userId)
+        .collection('MAP')
+        .doc('currentLocation');
+    await mapRef.set({
+      'latitude': position.latitude,
+      'longitude': position.longitude,
+      'timestamp': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
   void _listenToSensorEvents() {
-    _magnetometerSubscription = magnetometerEvents.listen((MagnetometerEvent event) {
+    _magnetometerSubscription = magnetometerEventStream().listen((MagnetometerEvent event) {
       if (mounted) {
         setState(() {
           _heading = _calculateHeading(event.x, event.y, event.z);
@@ -297,7 +355,7 @@ class _MapScreenState extends State<MapScreen> {
             child: Center(
               child: Text(
                 '가족으로 등록된 사람이 없어요!',
-                style: TextStyle(color: Colors.white, fontSize: 20),
+                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500),
               ),
             ),
           );
@@ -315,20 +373,47 @@ class _MapScreenState extends State<MapScreen> {
 
               var familyDocs = snapshot.data!.docs;
 
-              return Container(
-                color: Color(0xff6D605A),
-                child: ListView.builder(
-                  itemCount: familyDocs.length,
-                  itemBuilder: (context, index) {
-                    var familyData = familyDocs[index].data() as Map<String, dynamic>;
-                    return ListTile(
-                      title: Text(
-                        familyData['familyName'],
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    );
-                  },
-                ),
+              return StatefulBuilder(
+                builder: (BuildContext context, StateSetter setState) {
+                  return Container(
+                    color: Color(0xff6D605A),
+                    child: ListView.builder(
+                      itemCount: familyDocs.length,
+                      itemBuilder: (context, index) {
+                        var familyData = familyDocs[index].data() as Map<String, dynamic>;
+                        bool isSwitchOn = _switchValues[familyDocs[index].id] ?? false;
+
+                        return SwitchListTile(
+
+                          title: Text(
+                            familyData['familyName'],
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                          ),
+                          value: isSwitchOn,
+                          onChanged: (bool value) {
+                            setState(() {
+                              isSwitchOn = value;
+                              _switchValues[familyDocs[index].id] = value;
+                              _markers = _markers.map((marker) {
+                                if (marker.markerId.value == familyDocs[index].id) {
+                                  return marker.copyWith(visibleParam: value);
+                                }
+                                return marker;
+                              }).toSet();
+                            });
+                            FirebaseFirestore.instance
+                                .collection('USERLIST')
+                                .doc(userDoc.docs.first.id)
+                                .collection('FAMILY')
+                                .doc(familyDocs[index].id)
+                                .update({'isSwitchOn': value});
+                          },
+                          activeColor: Colors.blue,
+                        );
+                      },
+                    ),
+                  );
+                },
               );
             },
           );
@@ -336,6 +421,7 @@ class _MapScreenState extends State<MapScreen> {
       },
     );
   }
+
 
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
@@ -382,7 +468,7 @@ class _MapScreenState extends State<MapScreen> {
             onCameraMove: _onCameraMove,
             myLocationEnabled: true,
             myLocationButtonEnabled: true,
-            markers: _currentLocationMarker != null ? {_currentLocationMarker!} : {},
+            markers: {_currentLocationMarker!, ..._markers},
             polygons: _polygons,
           ),
         ],
@@ -394,7 +480,7 @@ class _MapScreenState extends State<MapScreen> {
           children: [
             GestureDetector(
               onTap: _showFamilyInfoBottomSheet,
-              child: _buildBottomNavigationBarItem(Icons.home),
+              child: _buildBottomNavigationBarItem(Icons.account_circle),
             ),
             GestureDetector(
                 onTap: () {
@@ -428,11 +514,11 @@ class _MapScreenState extends State<MapScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => SnsApp(),
+                      builder: (context) => Schefuler(),
                     ),
                   );
                 },
-                child: _buildBottomNavigationBarItem(Icons.photo_album)
+                child: _buildBottomNavigationBarItem(Icons.calendar_month)
             ),
             GestureDetector(
                 onTap: _showBottomSheet,
@@ -460,5 +546,3 @@ class _MapScreenState extends State<MapScreen> {
 extension on double {
   double toRad() => this * pi / 180.0;
 }
-
-// 맵메인

@@ -14,6 +14,7 @@ void main() async {
 }
 
 class FirstMainHome extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -38,6 +39,7 @@ class FirstMainHome extends StatelessWidget {
           labelSmall: TextStyle(fontFamily: 'Pretendard'),
         ),
       ),
+      themeMode: ThemeMode.system,
       home: FirstMain(),
     );
   }
