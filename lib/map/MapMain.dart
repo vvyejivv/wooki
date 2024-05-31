@@ -16,6 +16,7 @@ import '../album/album_main.dart';
 import '../login/Login_main.dart';
 import 'package:wooki/Schefuler/main.dart';
 import '../Join/JoinEditDelete.dart';
+import 'package:wooki/CustomerServiceCenter/main.dart';
 
 // main 함수에서 Firebase 초기화 및 앱 실행
 void main() async {
@@ -395,7 +396,10 @@ class _MapScreenState extends State<MapScreen> {
                         leading: Icon(Icons.help, color: Colors.white),
                         title: Text('고객센터', style: TextStyle(color: Colors.white)),
                         onTap: () {
-                          // Add your onTap functionality here
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => Customer()),
+                          );
                         },
                       ),
                       SizedBox(height: 16),
