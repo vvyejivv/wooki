@@ -13,13 +13,12 @@ class ToHomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<ToHomeScreen> {
   List<String> items = [
-    '항목 1',
-    '항목 2',
-    '항목 3',
-    '최신 소식 1',
-    '고객 리뷰 1',
-    '고객 지원 1',
-    '최근 활동 1',
+    '자주하는 질문 ',
+    '최신 공지사항 ',
+    '최신 소식 ',
+    '고객 리뷰 ',
+    '고객 지원 ',
+    '최근 활동 ',
   ]; // 전체 항목 리스트
   List<String> filteredItems = []; // 필터링된 항목 리스트
 
@@ -209,8 +208,39 @@ class _HomeScreenState extends State<ToHomeScreen> {
             child: ListView.builder(
               itemCount: filteredItems.length,
               itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(filteredItems[index]),
+                return GestureDetector(
+                  onTap: () {
+                    // Define navigation logic here based on the item clicked
+                    if (filteredItems[index] == '최신 소식') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => LatestNewsScreen()),
+                      );
+                    } else if (filteredItems[index] == '고객 리뷰') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => CustomerReviewsScreen()),
+                      );
+                    } else if (filteredItems[index] == '고객 지원') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => CustomerSupportScreen()),
+                      );
+                    } else if (filteredItems[index] == '최근 활동') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => RecentActivitiesScreen()),
+                      );
+                    }
+                  },
+                  child: ListTile(
+                    title: Text(filteredItems[index]),
+                    subtitle: Text(_getSubtitle(filteredItems[index])),
+                  ),
                 );
               },
             ),
@@ -231,6 +261,23 @@ class _HomeScreenState extends State<ToHomeScreen> {
       icon: Icon(icon),
       label: Text(label),
     );
+  }
+
+  // Subtitle generation method
+  String _getSubtitle(String item) {
+    // Define your logic here to generate subtitles based on the item.
+    // This is just a placeholder example:
+    if (item.contains('최신 소식')) {
+      return '최신 소식에 대한 부제목';
+    } else if (item.contains('고객 리뷰')) {
+      return '고객 리뷰에 대한 부제목';
+    } else if (item.contains('고객 지원')) {
+      return '고객 지원에 대한 부제목';
+    } else if (item.contains('최근 활동')) {
+      return '최근 활동에 대한 부제목';
+    } else {
+      return ''; // Return an empty string if no specific subtitle is defined.
+    }
   }
 }
 
