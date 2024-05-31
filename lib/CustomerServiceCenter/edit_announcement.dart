@@ -1,35 +1,38 @@
 import 'package:flutter/material.dart';
-import 'firestore_service.dart'; // Firestore와 상호 작용하기 위한 서비스 클래스를 임포트합니다.
+import 'firestore_service.dart';
 
 class EditAnnouncement extends StatefulWidget {
-  final AnnouncementData announcement;
+  final AnnouncementData announcement; // 수정할 공지사항 데이터
 
-  const EditAnnouncement({Key? key, required this.announcement}) : super(key: key);
+  const EditAnnouncement({Key? key, required this.announcement})
+      : super(key: key);
 
   @override
   _EditAnnouncementState createState() => _EditAnnouncementState();
 }
 
 class _EditAnnouncementState extends State<EditAnnouncement> {
-  late TextEditingController _titleController;
-  late TextEditingController _contentController;
-  late bool _important;
-  late FirestoreService _firestoreService;
+  late TextEditingController _titleController; // 제목 입력 필드 컨트롤러
+  late TextEditingController _contentController; // 내용 입력 필드 컨트롤러
+  late bool _important; // 긴급 공지 여부
+  late FirestoreService _firestoreService; // Firestore 서비스 인스턴스
 
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.announcement.title);
-    _contentController = TextEditingController(text: widget.announcement.content);
-    _important = widget.announcement.important;
-    _firestoreService = FirestoreService();
+    _titleController = TextEditingController(
+        text: widget.announcement.title); // 제목 입력 필드 컨트롤러 초기화
+    _contentController = TextEditingController(
+        text: widget.announcement.content); // 내용 입력 필드 컨트롤러 초기화
+    _important = widget.announcement.important; // 긴급 공지 여부 초기화
+    _firestoreService = FirestoreService(); // Firestore 서비스 초기화
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('공지사항 수정'),
+        title: Text('공지사항 수정'), // 앱 바 타이틀
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -37,27 +40,27 @@ class _EditAnnouncementState extends State<EditAnnouncement> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
-              controller: _titleController,
-              decoration: InputDecoration(labelText: '제목'),
+              controller: _titleController, // 제목 입력 필드에 컨트롤러 연결
+              decoration: InputDecoration(labelText: '제목'), // 제목 입력 필드 레이블
             ),
             TextField(
-              controller: _contentController,
-              decoration: InputDecoration(labelText: '내용'),
+              controller: _contentController, // 내용 입력 필드에 컨트롤러 연결
+              decoration: InputDecoration(labelText: '내용'), // 내용 입력 필드 레이블
             ),
             CheckboxListTile(
-              title: Text('긴급공지'),
-              value: _important,
+              title: Text('긴급공지'), // 체크박스 라벨
+              value: _important, // 체크 상태
               onChanged: (value) {
                 setState(() {
-                  _important = value!;
+                  _important = value!; // 체크 상태 업데이트
                 });
               },
             ),
             SizedBox(height: 16),
             Center(
               child: ElevatedButton(
-                onPressed: _updateAnnouncement,
-                child: Text('수정하기'),
+                onPressed: _updateAnnouncement, // 수정하기 버튼 클릭 시 처리
+                child: Text('수정하기'), // 버튼 텍스트
               ),
             ),
           ],
@@ -70,11 +73,13 @@ class _EditAnnouncementState extends State<EditAnnouncement> {
     final updatedAnnouncement = AnnouncementData(
       id: widget.announcement.id,
       title: _titleController.text,
+      // 업데이트된 제목
       content: _contentController.text,
+      // 업데이트된 내용
       date: widget.announcement.date,
-      important: _important,
+      important: _important, // 업데이트된 긴급 공지 여부
     );
-    _firestoreService.updateAnnouncement(updatedAnnouncement);
+    _firestoreService.updateAnnouncement(updatedAnnouncement); // 공지사항 업데이트
     Navigator.of(context).pop(); // 수정 페이지 닫기
   }
 }
