@@ -203,6 +203,31 @@ class _MapScreenState extends State<MapScreen> {
     _savePositionToFirestore(position);
   }
 
+  Future<Uint8List> _loadNetworkImage(String imageUrl) async {
+    final http.Response response = await http.get(Uri.parse(imageUrl));
+    return response.bodyBytes;
+  }
+
+  Future<Uint8List> _getCircleAvatarBytes(String imageUrl, {required int size}) async {
+    Uint8List bytes = await _loadNetworkImage(imageUrl);
+    ui.Codec codec = await ui.instantiateImageCodec(bytes, targetWidth: size, targetHeight: size);
+    ui.FrameInfo frameInfo = await codec.getNextFrame();
+    ui.Image image = frameInfo.image;
+
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    final paint = Paint()..isAntiAlias = true;
+    final path = Path()
+      ..addOval(Rect.fromLTWH(0, 0, size.toDouble(), size.toDouble()));
+    canvas.clipPath(path);
+    canvas.drawImage(image, Offset.zero, paint);
+    final picture = recorder.endRecording();
+    final img = await picture.toImage(size, size);
+    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+    return byteData!.buffer.asUint8List();
+  }
+
+
   void _startUpdateTimer(Position position) {
     _updateTimer?.cancel();
     _updateTimer = Timer(Duration(seconds: 5), () {
@@ -212,11 +237,11 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-  Future<void> _updatePosition(Position position) async {
+ Future<void> _updatePosition(Position position) async {
     final newPosition = LatLng(position.latitude, position.longitude);
     if (mounted) {
       if (_userImage != null) {
-        final Uint8List imageBytes = await _getCircleAvatarBytes(_userImage!);
+        final Uint8List imageBytes = await _getCircleAvatarBytes(_userImage!, size: 250); // 크기를 250으로 지정
         final icon = BitmapDescriptor.fromBytes(imageBytes);
         setState(() {
           _currentPosition = newPosition;
