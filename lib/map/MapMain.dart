@@ -16,8 +16,9 @@ import '../album/album_main.dart';
 import '../login/Login_main.dart';
 import 'package:wooki/Schefuler/main.dart';
 import '../Join/JoinEditDelete.dart';
+import 'package:wooki/CustomerServiceCenter/main.dart';
 
-// main function to initialize Firebase and run the app
+// main 함수에서 Firebase 초기화 및 앱 실행
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -67,18 +68,19 @@ class _MapScreenState extends State<MapScreen> {
         .get();
     if (userDoc.docs.isNotEmpty) {
       Map<String, dynamic> userData = userDoc.docs.first.data();
+      String userKey = userData['key']; // userKey 값 가져오기
       setState(() {
         _userName = userData['name'];
         _userImage = userData['imagePath'];
       });
-      _initializeCurrentPosition(userDoc.docs.first.id);
-      _initializeFamilyMarkers();
+      _initializeCurrentPosition(userId: userDoc.docs.first.id); // userId 값을 전달하여 호출
+      _initializeFamilyMarkers(userKey: userKey); // userKey 값을 전달하여 호출
     } else {
       print('User document not found');
     }
   }
 
-  Future<void> _initializeCurrentPosition(String userId) async {
+  Future<void> _initializeCurrentPosition({required String userId}) async {
     DocumentSnapshot<Map<String, dynamic>> mapDoc = await FirebaseFirestore.instance
         .collection('USERLIST')
         .doc(userId)
@@ -96,20 +98,7 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  Future<void> _initializeFamilyMarkers() async {
-    QuerySnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance
-        .collection('USERLIST')
-        .where('email', isEqualTo: widget.userId)
-        .get();
-
-    if (userDoc.docs.isEmpty) {
-      print('User document not found');
-      return;
-    }
-
-    Map<String, dynamic> userData = userDoc.docs.first.data();
-    String userKey = userData['key'] ?? '';
-
+  Future<void> _initializeFamilyMarkers({required String userKey}) async {
     QuerySnapshot<Map<String, dynamic>> familyCollection = await FirebaseFirestore.instance
         .collection('USERLIST')
         .where('key', isEqualTo: userKey)
@@ -117,21 +106,71 @@ class _MapScreenState extends State<MapScreen> {
 
     if (familyCollection.docs.isNotEmpty) {
       setState(() {
+        _markers.clear();
         for (var familyDoc in familyCollection.docs) {
           final familyData = familyDoc.data();
-          _switchValues[familyDoc.id] = familyData['isSwitchOn'] ?? false;
-          _markers.add(Marker(
-            markerId: MarkerId(familyDoc.id),
-            position: LatLng(familyData['latitude'], familyData['longitude']),
-            infoWindow: InfoWindow(title: familyData['name']),
-            visible: _switchValues[familyDoc.id] ?? false,
-          ));
+          String familyId = familyDoc.id;
+          _switchValues[familyId] = familyData['isSwitchOn'] ?? false;
+
+          // 각 사용자의 위치 데이터를 가져옴
+          FirebaseFirestore.instance
+              .collection('USERLIST')
+              .doc(familyId)
+              .collection('MAP')
+              .doc('currentLocation')
+              .get()
+              .then((mapDoc) async {
+            if (mapDoc.exists) {
+              Map<String, dynamic>? mapData = mapDoc.data();
+              if (mapData != null) {
+                // 프로필 이미지 가져오기
+                Uint8List imageBytes = await _getCircleAvatarBytes(familyData['imagePath']);
+                final icon = BitmapDescriptor.fromBytes(imageBytes);
+
+                setState(() {
+                  _markers.add(Marker(
+                    markerId: MarkerId(familyId),
+                    position: LatLng(mapData['latitude'], mapData['longitude']),
+                    icon: icon,
+                    infoWindow: InfoWindow(title: familyData['name']),
+                    visible: _switchValues[familyId] ?? false,
+                  ));
+                });
+              }
+            }
+          });
         }
       });
+    } else {
+      print('No family members found with the same key.');
     }
   }
 
+  Future<Uint8List> _loadNetworkImage(String imageUrl) async {
+    final http.Response response = await http.get(Uri.parse(imageUrl));
+    return response.bodyBytes;
+  }
 
+  Future<Uint8List> _getCircleAvatarBytes(String imageUrl) async {
+    Uint8List bytes = await _loadNetworkImage(imageUrl);
+    ui.Codec codec = await ui.instantiateImageCodec(bytes);
+    ui.FrameInfo frameInfo = await codec.getNextFrame();
+    ui.Image image = frameInfo.image;
+
+    final size = min(image.width, image.height);
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    final paint = Paint();
+    paint.isAntiAlias = true;
+    final path = Path()
+      ..addOval(Rect.fromLTWH(0, 0, size.toDouble(), size.toDouble()));
+    canvas.clipPath(path);
+    canvas.drawImage(image, Offset.zero, paint);
+    final picture = recorder.endRecording();
+    final img = await picture.toImage(size, size);
+    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+    return byteData!.buffer.asUint8List();
+  }
 
   Future<void> _getCurrentLocation() async {
     bool serviceEnabled;
@@ -162,32 +201,6 @@ class _MapScreenState extends State<MapScreen> {
     });
 
     _savePositionToFirestore(position);
-  }
-
-  Future<Uint8List> _loadNetworkImage(String imageUrl) async {
-    final http.Response response = await http.get(Uri.parse(imageUrl));
-    return response.bodyBytes;
-  }
-
-  Future<Uint8List> _getCircleAvatarBytes(String imageUrl) async {
-    Uint8List bytes = await _loadNetworkImage(imageUrl);
-    ui.Codec codec = await ui.instantiateImageCodec(bytes);
-    ui.FrameInfo frameInfo = await codec.getNextFrame();
-    ui.Image image = frameInfo.image;
-
-    final size = min(image.width, image.height);
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
-    final paint = Paint();
-    paint.isAntiAlias = true;
-    final path = Path()
-      ..addOval(Rect.fromLTWH(0, 0, size.toDouble(), size.toDouble()));
-    canvas.clipPath(path);
-    canvas.drawImage(image, Offset.zero, paint);
-    final picture = recorder.endRecording();
-    final img = await picture.toImage(size, size);
-    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
-    return byteData!.buffer.asUint8List();
   }
 
   void _startUpdateTimer(Position position) {
@@ -251,9 +264,8 @@ class _MapScreenState extends State<MapScreen> {
     }, SetOptions(merge: true));
   }
 
-
   void _listenToSensorEvents() {
-    _magnetometerSubscription = magnetometerEventStream().listen((MagnetometerEvent event) {
+    _magnetometerSubscription = magnetometerEvents.listen((MagnetometerEvent event) {
       if (mounted) {
         setState(() {
           _heading = _calculateHeading(event.x, event.y, event.z);
@@ -384,7 +396,10 @@ class _MapScreenState extends State<MapScreen> {
                         leading: Icon(Icons.help, color: Colors.white),
                         title: Text('고객센터', style: TextStyle(color: Colors.white)),
                         onTap: () {
-                          // Add your onTap functionality here
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => Customer()),
+                          );
                         },
                       ),
                       SizedBox(height: 16),
@@ -479,7 +494,6 @@ class _MapScreenState extends State<MapScreen> {
       },
     );
   }
-
 
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
