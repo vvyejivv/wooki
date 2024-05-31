@@ -169,17 +169,15 @@ class _MapScreenState extends State<MapScreen> {
     return response.bodyBytes;
   }
 
-  Future<Uint8List> _getCircleAvatarBytes(String imageUrl) async {
+  Future<Uint8List> _getCircleAvatarBytes(String imageUrl, {required int size}) async {
     Uint8List bytes = await _loadNetworkImage(imageUrl);
-    ui.Codec codec = await ui.instantiateImageCodec(bytes);
+    ui.Codec codec = await ui.instantiateImageCodec(bytes, targetWidth: size, targetHeight: size);
     ui.FrameInfo frameInfo = await codec.getNextFrame();
     ui.Image image = frameInfo.image;
 
-    final size = min(image.width, image.height);
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
-    final paint = Paint();
-    paint.isAntiAlias = true;
+    final paint = Paint()..isAntiAlias = true;
     final path = Path()
       ..addOval(Rect.fromLTWH(0, 0, size.toDouble(), size.toDouble()));
     canvas.clipPath(path);
@@ -189,6 +187,7 @@ class _MapScreenState extends State<MapScreen> {
     final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
     return byteData!.buffer.asUint8List();
   }
+
 
   void _startUpdateTimer(Position position) {
     _updateTimer?.cancel();
@@ -203,7 +202,7 @@ class _MapScreenState extends State<MapScreen> {
     final newPosition = LatLng(position.latitude, position.longitude);
     if (mounted) {
       if (_userImage != null) {
-        final Uint8List imageBytes = await _getCircleAvatarBytes(_userImage!);
+        final Uint8List imageBytes = await _getCircleAvatarBytes(_userImage!, size: 250); // 크기를 250으로 지정
         final icon = BitmapDescriptor.fromBytes(imageBytes);
         setState(() {
           _currentPosition = newPosition;
