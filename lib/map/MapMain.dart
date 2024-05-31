@@ -124,7 +124,7 @@ class _MapScreenState extends State<MapScreen> {
               Map<String, dynamic>? mapData = mapDoc.data();
               if (mapData != null) {
                 // 프로필 이미지 가져오기
-                Uint8List imageBytes = await _getCircleAvatarBytes(familyData['imagePath']);
+                Uint8List imageBytes = await _getCircleAvatarBytes(familyData['imagePath'], size: 250);
                 final icon = BitmapDescriptor.fromBytes(imageBytes);
 
                 setState(() {
@@ -144,32 +144,6 @@ class _MapScreenState extends State<MapScreen> {
     } else {
       print('No family members found with the same key.');
     }
-  }
-
-  Future<Uint8List> _loadNetworkImage(String imageUrl) async {
-    final http.Response response = await http.get(Uri.parse(imageUrl));
-    return response.bodyBytes;
-  }
-
-  Future<Uint8List> _getCircleAvatarBytes(String imageUrl) async {
-    Uint8List bytes = await _loadNetworkImage(imageUrl);
-    ui.Codec codec = await ui.instantiateImageCodec(bytes);
-    ui.FrameInfo frameInfo = await codec.getNextFrame();
-    ui.Image image = frameInfo.image;
-
-    final size = min(image.width, image.height);
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
-    final paint = Paint();
-    paint.isAntiAlias = true;
-    final path = Path()
-      ..addOval(Rect.fromLTWH(0, 0, size.toDouble(), size.toDouble()));
-    canvas.clipPath(path);
-    canvas.drawImage(image, Offset.zero, paint);
-    final picture = recorder.endRecording();
-    final img = await picture.toImage(size, size);
-    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
-    return byteData!.buffer.asUint8List();
   }
 
   Future<void> _getCurrentLocation() async {
