@@ -72,7 +72,7 @@ class _MapScreenState extends State<MapScreen> {
         _userImage = userData['imagePath'];
       });
       _initializeCurrentPosition(userDoc.docs.first.id);
-      _initializeFamilyMarkers(userDoc.docs.first.id);
+      _initializeFamilyMarkers();
     } else {
       print('User document not found');
     }
@@ -96,11 +96,23 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  Future<void> _initializeFamilyMarkers(String userId) async {
-    final familyCollection = await FirebaseFirestore.instance
+  Future<void> _initializeFamilyMarkers() async {
+    QuerySnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance
         .collection('USERLIST')
-        .doc(userId)
-        .collection('FAMILY')
+        .where('email', isEqualTo: widget.userId)
+        .get();
+
+    if (userDoc.docs.isEmpty) {
+      print('User document not found');
+      return;
+    }
+
+    Map<String, dynamic> userData = userDoc.docs.first.data();
+    String userKey = userData['key'] ?? '';
+
+    QuerySnapshot<Map<String, dynamic>> familyCollection = await FirebaseFirestore.instance
+        .collection('USERLIST')
+        .where('key', isEqualTo: userKey)
         .get();
 
     if (familyCollection.docs.isNotEmpty) {
@@ -111,13 +123,15 @@ class _MapScreenState extends State<MapScreen> {
           _markers.add(Marker(
             markerId: MarkerId(familyDoc.id),
             position: LatLng(familyData['latitude'], familyData['longitude']),
-            infoWindow: InfoWindow(title: familyData['familyName']),
+            infoWindow: InfoWindow(title: familyData['name']),
             visible: _switchValues[familyDoc.id] ?? false,
           ));
         }
       });
     }
   }
+
+
 
   Future<void> _getCurrentLocation() async {
     bool serviceEnabled;
@@ -211,9 +225,23 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _savePositionToFirestore(Position position) async {
+    // 이메일을 기준으로 도큐먼트 아이디를 찾음
+    QuerySnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance
+        .collection('USERLIST')
+        .where('email', isEqualTo: widget.userId)
+        .get();
+
+    if (userDoc.docs.isEmpty) {
+      print('User document not found');
+      return;
+    }
+
+    // 도큐먼트 아이디를 사용하여 위치 데이터 저장
+    String docId = userDoc.docs.first.id;
+
     final mapRef = FirebaseFirestore.instance
         .collection('USERLIST')
-        .doc(widget.userId)
+        .doc(docId)
         .collection('MAP')
         .doc('currentLocation');
     await mapRef.set({
@@ -222,6 +250,7 @@ class _MapScreenState extends State<MapScreen> {
       'timestamp': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
+
 
   void _listenToSensorEvents() {
     _magnetometerSubscription = magnetometerEventStream().listen((MagnetometerEvent event) {
@@ -381,84 +410,76 @@ class _MapScreenState extends State<MapScreen> {
         .collection('USERLIST')
         .where('email', isEqualTo: widget.userId)
         .get();
-    Map<String, dynamic> userData = userDoc.docs.first.data();
 
-    bool familyLinked = userData['familyLinked'];
+    if (userDoc.docs.isEmpty) {
+      print('User document not found');
+      return;
+    }
+
+    Map<String, dynamic> userData = userDoc.docs.first.data();
+    String userKey = userData['key'] ?? '';
+
+    QuerySnapshot<Map<String, dynamic>> familyCollection = await FirebaseFirestore.instance
+        .collection('USERLIST')
+        .where('key', isEqualTo: userKey)
+        .get();
+
+    if (familyCollection.docs.isEmpty) {
+      print('No family members found');
+      return;
+    }
 
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
-        if (!familyLinked) {
-          return Container(
-            color: Color(0xff6D605A),
-            child: Center(
-              child: Text(
-                '가족으로 등록된 사람이 없어요!',
-                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500),
-              ),
-            ),
-          );
-        } else {
-          return StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('USERLIST')
-                .doc(userDoc.docs.first.id)
-                .collection('FAMILY')
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return Center(child: CircularProgressIndicator());
-              }
+        return Container(
+          color: Color(0xff6D605A),
+          child: ListView.builder(
+            itemCount: familyCollection.docs.length,
+            itemBuilder: (context, index) {
+              var familyData = familyCollection.docs[index].data();
+              bool isSwitchOn = _switchValues[familyCollection.docs[index].id] ?? false;
+              String familyName = familyData['name'] ?? 'Unknown';
+              String imagePath = familyData['imagePath'] ?? 'default_image_path';
 
-              var familyDocs = snapshot.data!.docs;
-
-              return StatefulBuilder(
-                builder: (BuildContext context, StateSetter setState) {
-                  return Container(
-                    color: Color(0xff6D605A),
-                    child: ListView.builder(
-                      itemCount: familyDocs.length,
-                      itemBuilder: (context, index) {
-                        var familyData = familyDocs[index].data() as Map<String, dynamic>;
-                        bool isSwitchOn = _switchValues[familyDocs[index].id] ?? false;
-
-                        return SwitchListTile(
-                          title: Text(
-                            familyData['familyName'],
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-                          ),
-                          value: isSwitchOn,
-                          onChanged: (bool value) {
-                            setState(() {
-                              isSwitchOn = value;
-                              _switchValues[familyDocs[index].id] = value;
-                              _markers = _markers.map((marker) {
-                                if (marker.markerId.value == familyDocs[index].id) {
-                                  return marker.copyWith(visibleParam: value);
-                                }
-                                return marker;
-                              }).toSet();
-                            });
-                            FirebaseFirestore.instance
-                                .collection('USERLIST')
-                                .doc(userDoc.docs.first.id)
-                                .collection('FAMILY')
-                                .doc(familyDocs[index].id)
-                                .update({'isSwitchOn': value});
-                          },
-                          activeColor: Colors.blue,
-                        );
-                      },
-                    ),
-                  );
+              return SwitchListTile(
+                title: Text(
+                  familyName,
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                ),
+                value: isSwitchOn,
+                onChanged: (bool value) {
+                  setState(() {
+                    isSwitchOn = value;
+                    _switchValues[familyCollection.docs[index].id] = value;
+                    _markers = _markers.map((marker) {
+                      if (marker.markerId.value == familyCollection.docs[index].id) {
+                        return marker.copyWith(visibleParam: value);
+                      }
+                      return marker;
+                    }).toSet();
+                  });
+                  FirebaseFirestore.instance
+                      .collection('USERLIST')
+                      .doc(familyCollection.docs[index].id)
+                      .update({'isSwitchOn': value});
                 },
+                activeColor: Colors.blue,
+                secondary: imagePath != 'default_image_path'
+                    ? CircleAvatar(
+                  backgroundImage: NetworkImage(imagePath),
+                )
+                    : CircleAvatar(
+                  child: Icon(Icons.person),
+                ),
               );
             },
-          );
-        }
+          ),
+        );
       },
     );
   }
+
 
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
