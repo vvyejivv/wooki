@@ -170,21 +170,55 @@ class ChatRoomListPage extends StatelessWidget {
       context: context,
       builder: (context) {
         return FutureBuilder<QuerySnapshot>(
-          future: FirebaseFirestore.instance.collection('USERLIST').get(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
+          future: FirebaseFirestore.instance
+              .collection('USERLIST')
+              .where('email', isEqualTo: userId)
+              .limit(1)
+              .get(),
+          builder: (context, userSnapshot) {
+            if (!userSnapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
             }
 
-            final users =
-            snapshot.data!.docs.where((doc) => doc['email'] != userId).toList();
+            final userDocs = userSnapshot.data!.docs;
+            if (userDocs.isEmpty) {
+              return const Center(child: Text('사용자 데이터를 불러오지 못했습니다.'));
+            }
 
-            return _CreateChatRoomDialog(userId: userId, users: users);
+            final userData = userDocs.first.data() as Map<String, dynamic>?;
+            if (userData == null || !userData.containsKey('key')) {
+              return const Center(child: Text('사용자 데이터를 불러오지 못했습니다.'));
+            }
+
+            final userKey = userData['key'];
+
+            return FutureBuilder<QuerySnapshot>(
+              future: FirebaseFirestore.instance.collection('USERLIST').get(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final users = snapshot.data!.docs
+                    .where((doc) {
+                  final data = doc.data() as Map<String, dynamic>?;
+                  return data != null &&
+                      data.containsKey('key') &&
+                      data['key'] == userKey &&
+                      data['email'] != userId;
+                })
+                    .toList();
+
+                return _CreateChatRoomDialog(userId: userId, users: users);
+              },
+            );
           },
         );
       },
     );
   }
+
+
 
   void _showChatRoomSettingsDialog(
       BuildContext context, String chatRoomId, String peerNames) {
@@ -353,10 +387,25 @@ class __CreateChatRoomDialogState extends State<_CreateChatRoomDialog> {
 
   void _createChatRoom(BuildContext context) async {
     if (_selectedUserIds.isNotEmpty) {
-      final chatRoomId =
-          FirebaseFirestore.instance.collection('CHATROOMS').doc().id;
-      final userList =
-      [widget.userId, ..._selectedUserIds].where((id) => id != null).toList();
+      // 사용자 데이터 가져오기
+      final userDoc = await FirebaseFirestore.instance
+          .collection('USERLIST')
+          .where('email', isEqualTo: widget.userId)
+          .get();
+
+      if (userDoc.docs.isEmpty) {
+        print('User document not found');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('사용자 데이터를 찾을 수 없습니다.')),
+        );
+        return;
+      }
+
+      // 사용자의 familyKey 가져오기
+      final familyKey = userDoc.docs.first.data()['key'];
+
+      final chatRoomId = FirebaseFirestore.instance.collection('CHATROOMS').doc().id;
+      final userList = [widget.userId, ..._selectedUserIds].where((id) => id != null).toList();
       final roomName = userList
           .map((id) => _userNames[id] ?? '')
           .where((name) => name.isNotEmpty)
@@ -379,15 +428,16 @@ class __CreateChatRoomDialogState extends State<_CreateChatRoomDialog> {
       }
 
       if (isDuplicate) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('이미 있는 채팅방이에요!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('이미 있는 채팅방이에요!')),
+        );
       } else {
         await FirebaseFirestore.instance
             .collection('CHATROOMS')
             .doc(chatRoomId)
             .set({
           'USERLIST': userList,
-          'id': chatRoomId,
+          'key': familyKey,  // 채팅방에 familyKey를 추가
           'roomName': roomName,
         });
 
@@ -395,4 +445,6 @@ class __CreateChatRoomDialogState extends State<_CreateChatRoomDialog> {
       }
     }
   }
+
+
 }

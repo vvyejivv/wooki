@@ -48,8 +48,6 @@ class _MapScreenState extends State<MapScreen> {
   String? _userName;
   String? _userImage;
   double _heading = 0;
-  Set<Polygon> _polygons = {};
-  double _currentZoom = 18.0;
   Map<String, bool> _switchValues = {};
   Set<Marker> _markers = {};
 
@@ -80,6 +78,7 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+
   Future<void> _initializeCurrentPosition({required String userId}) async {
     DocumentSnapshot<Map<String, dynamic>> mapDoc = await FirebaseFirestore.instance
         .collection('USERLIST')
@@ -99,31 +98,28 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _initializeFamilyMarkers({required String userKey}) async {
-    QuerySnapshot<Map<String, dynamic>> familyCollection = await FirebaseFirestore.instance
+    FirebaseFirestore.instance
         .collection('USERLIST')
         .where('key', isEqualTo: userKey)
-        .get();
-
-    if (familyCollection.docs.isNotEmpty) {
+        .snapshots()
+        .listen((familySnapshot) {
       setState(() {
         _markers.clear();
-        for (var familyDoc in familyCollection.docs) {
+        for (var familyDoc in familySnapshot.docs) {
           final familyData = familyDoc.data();
           String familyId = familyDoc.id;
           _switchValues[familyId] = familyData['isSwitchOn'] ?? false;
 
-          // 각 사용자의 위치 데이터를 가져옴
           FirebaseFirestore.instance
               .collection('USERLIST')
               .doc(familyId)
               .collection('MAP')
               .doc('currentLocation')
-              .get()
-              .then((mapDoc) async {
-            if (mapDoc.exists) {
-              Map<String, dynamic>? mapData = mapDoc.data();
+              .snapshots()
+              .listen((mapSnapshot) async {
+            if (mapSnapshot.exists) {
+              Map<String, dynamic>? mapData = mapSnapshot.data();
               if (mapData != null) {
-                // 프로필 이미지 가져오기
                 Uint8List imageBytes = await _getCircleAvatarBytes(familyData['imagePath'], size: 250);
                 final icon = BitmapDescriptor.fromBytes(imageBytes);
 
@@ -141,10 +137,9 @@ class _MapScreenState extends State<MapScreen> {
           });
         }
       });
-    } else {
-      print('No family members found with the same key.');
-    }
+    });
   }
+
 
   Future<void> _getCurrentLocation() async {
     bool serviceEnabled;
@@ -201,7 +196,6 @@ class _MapScreenState extends State<MapScreen> {
     return byteData!.buffer.asUint8List();
   }
 
-
   void _startUpdateTimer(Position position) {
     _updateTimer?.cancel();
     _updateTimer = Timer(Duration(seconds: 5), () {
@@ -211,7 +205,7 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
- Future<void> _updatePosition(Position position) async {
+  Future<void> _updatePosition(Position position) async {
     final newPosition = LatLng(position.latitude, position.longitude);
     if (mounted) {
       if (_userImage != null) {
@@ -230,7 +224,6 @@ class _MapScreenState extends State<MapScreen> {
           if (_isCentered) {
             mapController.animateCamera(CameraUpdate.newLatLng(newPosition));
           }
-          _updatePolygon();
         });
       }
     }
@@ -264,11 +257,10 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _listenToSensorEvents() {
-    _magnetometerSubscription = magnetometerEvents.listen((MagnetometerEvent event) {
+    _magnetometerSubscription = magnetometerEventStream().listen((MagnetometerEvent event) {
       if (mounted) {
         setState(() {
           _heading = _calculateHeading(event.x, event.y, event.z);
-          _updatePolygon();
         });
       }
     });
@@ -282,37 +274,6 @@ class _MapScreenState extends State<MapScreen> {
     return heading;
   }
 
-  void _updatePolygon() {
-    const double baseViewAngle = 30.0;
-    const double baseViewDistance = 0.002;
-
-    double adjustedViewDistance = baseViewDistance * pow(2, 18.0 - _currentZoom);
-
-    final double leftAngle = (_heading - baseViewAngle).toRad();
-    final double rightAngle = (_heading + baseViewAngle).toRad();
-
-    final LatLng leftPoint = LatLng(
-      _currentPosition.latitude + adjustedViewDistance * cos(leftAngle),
-      _currentPosition.longitude + adjustedViewDistance * sin(leftAngle),
-    );
-    final LatLng rightPoint = LatLng(
-      _currentPosition.latitude + adjustedViewDistance * cos(rightAngle),
-      _currentPosition.longitude + adjustedViewDistance * sin(rightAngle),
-    );
-
-    setState(() {
-      _polygons = {
-        Polygon(
-          polygonId: PolygonId('viewPolygon'),
-          points: [_currentPosition, leftPoint, rightPoint, _currentPosition],
-          fillColor: Colors.blue.withOpacity(0.2),
-          strokeColor: Colors.transparent,
-          strokeWidth: 2,
-        ),
-      };
-    });
-  }
-
   void _toggleCenter() {
     setState(() {
       _isCentered = !_isCentered;
@@ -321,8 +282,6 @@ class _MapScreenState extends State<MapScreen> {
 
   void _onCameraMove(CameraPosition position) {
     setState(() {
-      _currentZoom = position.zoom;
-      _updatePolygon();
     });
 
     if (_isCentered) {
@@ -433,59 +392,57 @@ class _MapScreenState extends State<MapScreen> {
     Map<String, dynamic> userData = userDoc.docs.first.data();
     String userKey = userData['key'] ?? '';
 
-    QuerySnapshot<Map<String, dynamic>> familyCollection = await FirebaseFirestore.instance
-        .collection('USERLIST')
-        .where('key', isEqualTo: userKey)
-        .get();
-
-    if (familyCollection.docs.isEmpty) {
-      print('No family members found');
-      return;
-    }
-
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
         return Container(
           color: Color(0xff6D605A),
-          child: ListView.builder(
-            itemCount: familyCollection.docs.length,
-            itemBuilder: (context, index) {
-              var familyData = familyCollection.docs[index].data();
-              bool isSwitchOn = _switchValues[familyCollection.docs[index].id] ?? false;
-              String familyName = familyData['name'] ?? 'Unknown';
-              String imagePath = familyData['imagePath'] ?? 'default_image_path';
+          child: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('USERLIST')
+                .where('key', isEqualTo: userKey)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-              return SwitchListTile(
-                title: Text(
-                  familyName,
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-                ),
-                value: isSwitchOn,
-                onChanged: (bool value) {
-                  setState(() {
-                    isSwitchOn = value;
-                    _switchValues[familyCollection.docs[index].id] = value;
-                    _markers = _markers.map((marker) {
-                      if (marker.markerId.value == familyCollection.docs[index].id) {
-                        return marker.copyWith(visibleParam: value);
-                      }
-                      return marker;
-                    }).toSet();
-                  });
-                  FirebaseFirestore.instance
-                      .collection('USERLIST')
-                      .doc(familyCollection.docs[index].id)
-                      .update({'isSwitchOn': value});
+              final familyCollection = snapshot.data!.docs;
+
+              return ListView.builder(
+                itemCount: familyCollection.length,
+                itemBuilder: (context, index) {
+                  var familyData = familyCollection[index].data() as Map<String, dynamic>;
+                  String familyEmail = familyData['email'] ?? '';
+                  if (familyEmail == widget.userId) {
+                    return Container(); // 본인은 리스트에 포함되지 않음
+                  }
+                  bool isSwitchOn = familyData['isSwitchOn'] ?? false;
+                  String familyName = familyData['name'] ?? 'Unknown';
+                  String imagePath = familyData['imagePath'] ?? 'default_image_path';
+
+                  return SwitchListTile(
+                    title: Text(
+                      familyName,
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                    ),
+                    value: isSwitchOn,
+                    onChanged: (bool value) {
+                      FirebaseFirestore.instance
+                          .collection('USERLIST')
+                          .doc(familyCollection[index].id)
+                          .update({'isSwitchOn': value});
+                    },
+                    activeColor: Colors.blue,
+                    secondary: imagePath != 'default_image_path'
+                        ? CircleAvatar(
+                      backgroundImage: NetworkImage(imagePath),
+                    )
+                        : CircleAvatar(
+                      child: Icon(Icons.person),
+                    ),
+                  );
                 },
-                activeColor: Colors.blue,
-                secondary: imagePath != 'default_image_path'
-                    ? CircleAvatar(
-                  backgroundImage: NetworkImage(imagePath),
-                )
-                    : CircleAvatar(
-                  child: Icon(Icons.person),
-                ),
               );
             },
           ),
@@ -493,6 +450,7 @@ class _MapScreenState extends State<MapScreen> {
       },
     );
   }
+
 
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
@@ -543,7 +501,6 @@ class _MapScreenState extends State<MapScreen> {
               if (_currentLocationMarker != null) _currentLocationMarker!,
               ..._markers,
             },
-            polygons: _polygons,
           ),
         ],
       ),
@@ -554,7 +511,7 @@ class _MapScreenState extends State<MapScreen> {
           children: [
             GestureDetector(
               onTap: _showFamilyInfoBottomSheet,
-              child: _buildBottomNavigationBarItem(Icons.account_circle),
+              child: _buildBottomNavigationBarItem(Icons.family_restroom),
             ),
             GestureDetector(
                 onTap: () {
@@ -615,8 +572,4 @@ class _MapScreenState extends State<MapScreen> {
     _magnetometerSubscription?.cancel();
     super.dispose();
   }
-}
-
-extension on double {
-  double toRad() => this * pi / 180.0;
 }

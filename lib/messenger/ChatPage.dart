@@ -33,6 +33,7 @@ class _ChatPageState extends State<ChatPage> {
   List<types.Message> _messages = [];
   late final types.User _user;
   late ScrollController _scrollController;
+  Map<String, Map<String, String>> _participants = {};
 
   @override
   void initState() {
@@ -40,10 +41,12 @@ class _ChatPageState extends State<ChatPage> {
     _user = types.User(id: widget.userId);
     _scrollController = ScrollController();
     _loadMessages();
+    _loadParticipants();
   }
 
   void _addMessage(types.Message message) {
-    FirebaseFirestore.instance.collection('CHATROOMS')
+    FirebaseFirestore.instance
+        .collection('CHATROOMS')
         .doc(widget.chatRoomId)
         .collection('MESSAGES')
         .add(message.toJson());
@@ -170,12 +173,8 @@ class _ChatPageState extends State<ChatPage> {
 
       if (message.uri.startsWith('http')) {
         try {
-          final index =
-          _messages.indexWhere((element) => element.id == message.id);
-          final updatedMessage =
-          (_messages[index] as types.FileMessage).copyWith(
-            isLoading: true,
-          );
+          final index = _messages.indexWhere((element) => element.id == message.id);
+          final updatedMessage = (_messages[index] as types.FileMessage).copyWith(isLoading: true);
 
           setState(() {
             _messages[index] = updatedMessage;
@@ -192,12 +191,8 @@ class _ChatPageState extends State<ChatPage> {
             await file.writeAsBytes(bytes);
           }
         } finally {
-          final index =
-          _messages.indexWhere((element) => element.id == message.id);
-          final updatedMessage =
-          (_messages[index] as types.FileMessage).copyWith(
-            isLoading: null,
-          );
+          final index = _messages.indexWhere((element) => element.id == message.id);
+          final updatedMessage = (_messages[index] as types.FileMessage).copyWith(isLoading: null);
 
           setState(() {
             _messages[index] = updatedMessage;
@@ -237,18 +232,36 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  Future<List<String>> _getParticipants() async {
-    final chatRoomDoc = await FirebaseFirestore.instance.collection('CHATROOMS')
+  Future<List<Map<String, String>>> _getParticipants() async {
+    final chatRoomDoc = await FirebaseFirestore.instance
+        .collection('CHATROOMS')
         .doc(widget.chatRoomId)
         .get();
 
     final userEmails = List<String>.from(chatRoomDoc['USERLIST']);
 
     final userDocs = await Future.wait(
-        userEmails.map((userEmail) => FirebaseFirestore.instance.collection('USERLIST').where('email', isEqualTo: userEmail).get())
-    );
+        userEmails.map((userEmail) => FirebaseFirestore.instance
+            .collection('USERLIST')
+            .where('email', isEqualTo: userEmail)
+            .get()));
 
-    return userDocs.map((userQuery) => userQuery.docs.first['name'] as String).toList();
+    return userDocs.map((userQuery) {
+      final userData = userQuery.docs.first.data();
+      return {
+        'email': userData['email'] as String,
+        'name': userData['name'] as String,
+        'imagePath': userData['imagePath'] as String,
+      };
+    }).toList();
+  }
+
+  Future<void> _loadParticipants() async {
+    final participants = await _getParticipants();
+
+    setState(() {
+      _participants = {for (var user in participants) user['email']!: user};
+    });
   }
 
   void _leaveChatRoom() async {
@@ -278,6 +291,63 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
+  Widget _customMessageBuilder(types.Message message, {required int messageWidth}) {
+    if (message is types.CustomMessage && message.metadata != null) {
+      final text = message.metadata!['text'] as String;
+      return Container(
+        padding: const EdgeInsets.all(8.0),
+        margin: const EdgeInsets.symmetric(vertical: 4.0),
+        decoration: BoxDecoration(
+          color: Colors.grey[300],
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(color: Colors.black),
+        ),
+      );
+    }
+    return const SizedBox.shrink();
+  }
+
+  Widget _customBubbleBuilder(
+      Widget child, {
+        required types.Message message,
+        required bool nextMessageInGroup,
+      }) {
+    if (message.author.id != _user.id) {
+      final user = _participants[message.author.id];
+      if (user != null) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  backgroundImage: NetworkImage(user['imagePath']!),
+                  radius: 15,
+                ),
+                SizedBox(width: 8),
+                Text(user['name']!),
+              ],
+            ),
+            SizedBox(height: 5),
+            Container(
+              color: Color.fromRGBO(236, 234, 233, 1), // 상대방 메시지 배경색 설정
+              child: child,
+            ),
+          ],
+        );
+      }
+    }
+    return Container(
+      color: Color.fromRGBO(109, 96, 90, 1), // 본인의 메시지 배경색을 설정
+      child: child,
+    );
+  }
+
+
+
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
@@ -286,14 +356,38 @@ class _ChatPageState extends State<ChatPage> {
     ),
     drawer: Drawer(
       backgroundColor: Color(0xffFFFDEF),
-      child: FutureBuilder<List<String>>(
+      child: FutureBuilder<List<Map<String, String>>>(
         future: _getParticipants(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('사람이 없어요!'));
+            return Column(
+              children: [
+                Expanded(child: Center(child: Text('사람이 없어요!'))),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.exit_to_app),
+                      title: const Text('방에서 나가기'),
+                      onTap: _leaveChatRoom,
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.arrow_back),
+                      title: const Text('뒤로 가기'),
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => ChatRoomListPage(userId: widget.userId)),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            );
           }
           final participants = snapshot.data!;
           return Column(
@@ -304,7 +398,14 @@ class _ChatPageState extends State<ChatPage> {
                     color: Color(0xff6D605A),
                     child: ListTile(
                       textColor: Colors.white,
-                      title: Text(participant, style: TextStyle(fontWeight: FontWeight.w600)),
+                      title: Text(participant['name']!, style: TextStyle(fontWeight: FontWeight.w600)),
+                      leading: participant['imagePath'] != null
+                          ? CircleAvatar(
+                        backgroundImage: NetworkImage(participant['imagePath']!),
+                      )
+                          : CircleAvatar(
+                        child: Icon(Icons.person),
+                      ),
                     ),
                   )).toList(),
                 ),
@@ -352,24 +453,8 @@ class _ChatPageState extends State<ChatPage> {
         secondaryColor: Color.fromRGBO(236, 234, 233, 1),
         userAvatarImageBackgroundColor: Color.fromRGBO(168, 152, 145, 1),
       ),
-      customMessageBuilder: (message, {required int messageWidth}) {
-        if (message is types.CustomMessage && message.metadata != null) {
-          final text = message.metadata!['text'] as String;
-          return Container(
-            padding: const EdgeInsets.all(8.0),
-            margin: const EdgeInsets.symmetric(vertical: 4.0),
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            child: Text(
-              text,
-              style: const TextStyle(color: Colors.black),
-            ),
-          );
-        }
-        return const SizedBox.shrink();
-      },
+      customMessageBuilder: _customMessageBuilder,
+      bubbleBuilder: _customBubbleBuilder,
     ),
   );
 }
