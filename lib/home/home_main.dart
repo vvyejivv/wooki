@@ -108,7 +108,7 @@ class _FirstMainState extends State<FirstMain> {
               Container(
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage('assets/img/home_B.png'),
+                    image: AssetImage('assets/img/home_1.jpg'),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -117,7 +117,7 @@ class _FirstMainState extends State<FirstMain> {
               Container(
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage('assets/img/home_A.png'),
+                    image: AssetImage('assets/img/home_2.jpg'),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -126,7 +126,7 @@ class _FirstMainState extends State<FirstMain> {
               Container(
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage('assets/img/home_C.jpg'),
+                    image: AssetImage('assets/img/home_3.jpg'),
                     fit: BoxFit.cover,
                   ),
                 ),
