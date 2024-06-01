@@ -8,7 +8,6 @@ import 'event_page.dart';
 import 'firestore_service.dart';
 import 'home_screen.dart';
 
-
 class MainScreens extends StatefulWidget {
   const MainScreens({Key? key}) : super(key: key);
 

@@ -9,43 +9,55 @@ class AskedQuestions extends StatefulWidget {
 }
 
 class _AskedQuestionsState extends State<AskedQuestions> {
-  final FirestoreService _firestoreService = FirestoreService();
-  late final Stream<List<FAQ>> _faqStream;
-  String? _selectedCategory;
-  List<FAQ> _allFaqs = [];
-  List<FAQ> _filteredFaqs = [];
+  final FirestoreService _firestoreService =
+  FirestoreService(); // FirestoreService 인스턴스 생성
+  late final Stream<List<FAQ>> _faqStream; // FAQ 데이터를 가져오는 스트림
+  String? _selectedCategory; // 선택된 카테고리
+  List<FAQ> _allFaqs = []; // 모든 FAQ 목록
+  List<FAQ> _filteredFaqs = []; // 필터링된 FAQ 목록
 
   @override
   void initState() {
     super.initState();
-    _initializeFaqs();
+    _initializeFaqs(); // FAQ 데이터 초기화
   }
 
   Future<void> _initializeFaqs() async {
-    _faqStream = _firestoreService.getFAQs();
+    _faqStream =
+        _firestoreService.getFAQs(); // Firestore에서 FAQ 데이터 가져오는 스트림 초기화
     _faqStream.listen((faqs) {
-      _allFaqs = faqs;
-      _filterFaqs('');
+      _allFaqs = faqs; // 전체 FAQ 목록 업데이트
+      _filterFaqs(''); // FAQ 필터링
     });
   }
 
   void _selectCategory(String? category) {
     setState(() {
-      _selectedCategory = category;
-      _filterFaqs('');
+      _selectedCategory = category; // 선택된 카테고리 업데이트
+      _filterFaqs(''); // FAQ 필터링
     });
   }
 
   void _filterFaqs(String query) {
     setState(() {
       if (query.isEmpty) {
-        _filteredFaqs = (_selectedCategory == null || _selectedCategory!.isEmpty)
-            ? _allFaqs
-            : _allFaqs.where((faq) => faq.category == _selectedCategory).toList();
+        // 검색어가 없는 경우
+        _filteredFaqs =
+        (_selectedCategory == null || _selectedCategory!.isEmpty)
+            ? _allFaqs // 선택된 카테고리가 없으면 모든 FAQ 표시
+            : _allFaqs
+            .where((faq) => faq.category == _selectedCategory)
+            .toList(); // 선택된 카테고리에 해당하는 FAQ 표시
       } else {
+        // 검색어가 있는 경우
         _filteredFaqs = _allFaqs.where((faq) {
-          return faq.question.toLowerCase().contains(query.toLowerCase()) &&
-              (_selectedCategory == null || _selectedCategory!.isEmpty || faq.category == _selectedCategory);
+          return faq.question
+              .toLowerCase()
+              .contains(query.toLowerCase()) && // 질문에서 검색어 포함 여부 확인
+              (_selectedCategory == null ||
+                  _selectedCategory!.isEmpty ||
+                  faq.category ==
+                      _selectedCategory); // 선택된 카테고리에 해당하는 FAQ 여부 확인
         }).toList();
       }
     });
@@ -55,7 +67,7 @@ class _AskedQuestionsState extends State<AskedQuestions> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('자주하는질문', textAlign: TextAlign.center),
+        title: const Text('자주하는질문', textAlign: TextAlign.center), // 앱 바 타이틀
         centerTitle: true,
       ),
       body: Column(
@@ -66,12 +78,13 @@ class _AskedQuestionsState extends State<AskedQuestions> {
               child: Container(
                 width: 500,
                 child: TextField(
-                  onChanged: (value) => _filterFaqs(value),
+                  onChanged: (value) => _filterFaqs(value), // 검색어 입력 시 FAQ 필터링
                   decoration: InputDecoration(
-                    labelText: '검색',
-                    hintText: '질문 검색...',
-                    prefixIcon: Icon(Icons.search),
+                    labelText: '검색', // 검색 필드 레이블
+                    hintText: '질문 검색...', // 검색 힌트
+                    prefixIcon: Icon(Icons.search), // 검색 아이콘
                     border: OutlineInputBorder(
+                      // 텍스트 필드 외각선 스타일
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
@@ -81,10 +94,10 @@ class _AskedQuestionsState extends State<AskedQuestions> {
           ),
           SizedBox(
             height: 140,
-            child: _buildCategoryGrid(),
+            child: _buildCategoryGrid(), // 카테고리 그리드 생성
           ),
           Expanded(
-            child: _buildFAQList(),
+            child: _buildFAQList(), // FAQ 목록 생성
           ),
         ],
       ),
@@ -92,6 +105,7 @@ class _AskedQuestionsState extends State<AskedQuestions> {
   }
 
   Widget _buildCategoryGrid() {
+    // 카테고리 그리드 생성
     List<Category> categories = [
       Category(null, '모든 질문', Icons.all_inclusive),
       Category('서비스 이용과 결제', '서비스 이용과 결제', Icons.payment),
@@ -113,21 +127,29 @@ class _AskedQuestionsState extends State<AskedQuestions> {
       itemBuilder: (context, index) {
         final category = categories[index];
         return GestureDetector(
-          onTap: () => _selectCategory(category.id),
+          onTap: () => _selectCategory(category.id), // 카테고리 선택 시 처리
           child: Container(
             padding: const EdgeInsets.all(4.0),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: _selectedCategory == category.id ? Colors.blue : Colors.grey,
+                color: _selectedCategory == category.id
+                    ? Colors.blue
+                    : Colors.grey, // 선택된 카테고리의 색상 변경
               ),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(category.icon, size: 20, color: _selectedCategory == category.id ? Colors.blue : Colors.grey),
+                Icon(category.icon,
+                    size: 20,
+                    color: _selectedCategory == category.id
+                        ? Colors.blue
+                        : Colors.grey), // 아이콘 및 색상 변경
                 const SizedBox(height: 5),
-                Text(category.label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 10)),
+                Text(category.label,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 10)), // 라벨 텍스트
               ],
             ),
           ),
@@ -137,6 +159,7 @@ class _AskedQuestionsState extends State<AskedQuestions> {
   }
 
   Widget _buildFAQList() {
+    // FAQ 목록 생성
     return ListView.builder(
       itemCount: _filteredFaqs.length,
       itemBuilder: (context, index) {
@@ -144,11 +167,11 @@ class _AskedQuestionsState extends State<AskedQuestions> {
         return Card(
           margin: const EdgeInsets.all(8.0),
           child: ExpansionTile(
-            title: Text(faq.question),
+            title: Text(faq.question), // 질문
             children: [
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Text(faq.answer),
+                child: Text(faq.answer), // 답변
               ),
             ],
           ),
@@ -163,5 +186,5 @@ class Category {
   final String label;
   final IconData icon;
 
-  Category(this.id, this.label, this.icon);
+  Category(this.id, this.label, this.icon); // 카테고리 모델
 }

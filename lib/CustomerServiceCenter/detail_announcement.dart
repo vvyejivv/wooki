@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'edit_announcement.dart';
-import 'firestore_service.dart';
+import 'firestore_service.dart'; // Firestore 서비스를 사용하기 위한 라이브러리 임포트
+import 'edit_announcement.dart'; // 공지사항 수정 화면을 위한 라이브러리 임포트
 
 class AnnouncementDetail extends StatefulWidget {
   final AnnouncementData announcement; // 표시할 공지사항 데이터

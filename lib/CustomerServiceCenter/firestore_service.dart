@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -33,8 +32,8 @@ class FirestoreService {
         .orderBy('No', descending: false) // 'No' 필드를 기준으로 오름차순 정렬
         .snapshots() // 스트림 반환
         .map((snapshot) => snapshot.docs
-        .map((doc) => FAQ.fromFirestore(doc.data()))
-        .toList()); // 스트림 요소 변환하여 반환
+            .map((doc) => FAQ.fromFirestore(doc.data()))
+            .toList()); // 스트림 요소 변환하여 반환
   }
 
   // 카테고리별로 Firestore에서 FAQ 가져오기
@@ -45,8 +44,8 @@ class FirestoreService {
         .orderBy('No', descending: false) // 'No' 필드를 기준으로 오름차순 정렬
         .snapshots() // 스트림 반환
         .map((snapshot) => snapshot.docs
-        .map((doc) => FAQ.fromFirestore(doc.data()))
-        .toList()); // 스트림 요소 변환하여 반환
+            .map((doc) => FAQ.fromFirestore(doc.data()))
+            .toList()); // 스트림 요소 변환하여 반환
   }
 
   // Firestore에서 모든 공지사항 가져오기
@@ -56,8 +55,8 @@ class FirestoreService {
         .orderBy('date', descending: true) // 'date' 필드를 기준으로 내림차순 정렬
         .snapshots() // 스트림 반환
         .map((snapshot) => snapshot.docs
-        .map((doc) => AnnouncementData.fromFirestore(doc.data(), doc.id))
-        .toList()); // 스트림 요소 변환하여 반환
+            .map((doc) => AnnouncementData.fromFirestore(doc.data(), doc.id))
+            .toList()); // 스트림 요소 변환하여 반환
   }
 
   // Firestore에 새로운 공지사항 추가하는 메소드
@@ -99,9 +98,11 @@ class AnnouncementData {
   });
 
   // Firestore 문서에서 데이터를 가져와 공지사항 데이터 객체로 변환하는 팩토리 생성자
-  factory AnnouncementData.fromFirestore(Map<String, dynamic> firestore, String id) {
+  factory AnnouncementData.fromFirestore(
+      Map<String, dynamic> firestore, String id) {
     return AnnouncementData(
-      id: id, // 수정이 필요한 부분: Firestore 문서에서 id 필드를 가져와서 설정
+      id: id,
+      // 수정이 필요한 부분: Firestore 문서에서 id 필드를 가져와서 설정
       title: firestore['title'] as String,
       content: firestore['content'] as String,
       date: (firestore['date'] as Timestamp).toDate(),

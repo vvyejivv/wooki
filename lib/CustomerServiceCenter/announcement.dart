@@ -12,21 +12,22 @@ class Announcement extends StatefulWidget {
 
 class _AnnouncementState extends State<Announcement> {
   final FirestoreService _firestoreService = FirestoreService();
-  bool isAdmin = false;
+  bool isAdmin = false; // 관리자 여부를 저장하는 변수
 
   @override
   void initState() {
     super.initState();
-    _loadSessionData();
+    _loadSessionData(); // 세션 데이터를 로드하는 함수 호출
   }
 
   Future<void> _loadSessionData() async {
     final prefs = await SharedPreferences.getInstance();
-    String? email = prefs.getString('email');
+    String? email = prefs.getString('email'); // SharedPreferences에서 이메일을 가져옵니다.
     if (email != null) {
-      bool adminStatus = await _firestoreService.isAdminByEmail(email);
+      bool adminStatus = await _firestoreService
+          .isAdminByEmail(email); // Firestore에서 관리자 여부를 확인합니다.
       setState(() {
-        isAdmin = adminStatus;
+        isAdmin = adminStatus; // 관리자 여부를 상태에 저장합니다.
       });
     }
   }
@@ -35,9 +36,8 @@ class _AnnouncementState extends State<Announcement> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('공지사항'),
+        title: const Text('공지사항'), // 앱 바 타이틀
         centerTitle: true,
-        backgroundColor: Colors.blueAccent,
       ),
       body: Column(
         children: [
@@ -45,25 +45,27 @@ class _AnnouncementState extends State<Announcement> {
             child: SingleChildScrollView(
               child: StreamBuilder<List<AnnouncementData>>(
                 stream: _firestoreService.getAnnouncements(),
+                // 공지사항 데이터를 가져오는 스트림
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
                     return Center(
-                      child: Text('데이터를 불러오는 중 오류가 발생했습니다.'),
+                      child: Text('데이터를 불러오는 중 오류가 발생했습니다.'), // 데이터 로드 오류 메시지
                     );
                   }
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
-                      child: CircularProgressIndicator(),
+                      child: CircularProgressIndicator(), // 데이터 로딩 중 로딩 인디케이터
                     );
                   }
                   return ListView.builder(
                     shrinkWrap: true,
                     physics: NeverScrollableScrollPhysics(),
                     itemCount: snapshot.data?.length ?? 0,
+                    // 공지사항 수만큼 리스트 아이템 생성
                     itemBuilder: (context, index) {
                       var announcement = snapshot.data![index];
                       String truncatedContent = announcement.content.length > 10
-                          ? '${announcement.content.substring(0, 10)}...'
+                          ? '${announcement.content.substring(0, 10)}...' // 공지사항 내용이 너무 길 경우 일부만 표시
                           : announcement.content;
                       return Card(
                         elevation: 4,
@@ -71,7 +73,7 @@ class _AnnouncementState extends State<Announcement> {
                         child: ListTile(
                           leading: Icon(
                             announcement.important
-                                ? Icons.campaign
+                                ? Icons.campaign // 중요 공지면 아이콘 변경
                                 : Icons.notifications_none,
                             color: Colors.blue,
                           ),
@@ -90,7 +92,7 @@ class _AnnouncementState extends State<Announcement> {
                               MaterialPageRoute(
                                 builder: (context) => AnnouncementDetail(
                                   announcement: announcement,
-                                  isAdmin: isAdmin, // isAdmin 파라미터를 제공합니다.
+                                  isAdmin: isAdmin, // 공지사항 상세 화면으로 이동
                                 ),
                               ),
                             );
@@ -105,7 +107,7 @@ class _AnnouncementState extends State<Announcement> {
           ),
         ],
       ),
-      floatingActionButton: isAdmin
+      floatingActionButton: isAdmin // 관리자인 경우에만 추가 버튼 표시
           ? FloatingActionButton(
         onPressed: _showAddAnnouncementDialog,
         child: Icon(Icons.add),
@@ -118,7 +120,7 @@ class _AnnouncementState extends State<Announcement> {
   void _showAddAnnouncementDialog() {
     final _titleController = TextEditingController();
     final _contentController = TextEditingController();
-    bool _important = false;
+    bool _important = false; // 새 공지사항의 중요 여부
 
     showDialog(
       context: context,
@@ -164,7 +166,8 @@ class _AnnouncementState extends State<Announcement> {
                   date: DateTime.now(),
                   important: _important,
                 );
-                _firestoreService.addAnnouncement(newAnnouncement);
+                _firestoreService
+                    .addAnnouncement(newAnnouncement); // Firestore에 새 공지사항 추가
                 Navigator.of(context).pop();
               },
             ),

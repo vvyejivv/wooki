@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'firestore_service.dart';
+import 'firestore_service.dart'; // Firestore와 상호 작용하기 위한 서비스 클래스를 임포트합니다.
 
 class EditAnnouncement extends StatefulWidget {
   final AnnouncementData announcement; // 수정할 공지사항 데이터
