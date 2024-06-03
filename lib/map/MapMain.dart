@@ -154,8 +154,6 @@ class _MapScreenState extends State<MapScreen> {
   }
 
 
-
-
   Future<void> _getCurrentLocation() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -409,7 +407,6 @@ class _MapScreenState extends State<MapScreen> {
   }
 
 
-
   void _showFamilyInfoBottomSheet() async {
     QuerySnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance
         .collection('USERLIST')
@@ -463,13 +460,58 @@ class _MapScreenState extends State<MapScreen> {
                     onChanged: (bool value) async {
                       DocumentReference userRef = FirebaseFirestore.instance.collection('USERLIST').doc(userDoc.docs.first.id);
 
-                      if (value) {
-                        whiteList.add(familyEmail);
-                      } else {
-                        whiteList.remove(familyEmail);
-                      }
+                      setState(() {
+                        if (value) {
+                          whiteList.add(familyEmail);
+                        } else {
+                          whiteList.remove(familyEmail);
+                        }
+                      });
 
                       await userRef.update({'whiteList': whiteList});
+
+                      // 마커 업데이트
+                      setState(() {
+                        _markers.clear();
+                        FirebaseFirestore.instance
+                            .collection('USERLIST')
+                            .where('key', isEqualTo: userKey)
+                            .snapshots()
+                            .listen((familySnapshot) {
+                          for (var familyDoc in familySnapshot.docs) {
+                            final familyData = familyDoc.data();
+                            String familyId = familyDoc.id;
+
+                            if (whiteList.contains(familyData['email'])) {
+                              FirebaseFirestore.instance
+                                  .collection('USERLIST')
+                                  .doc(familyId)
+                                  .collection('MAP')
+                                  .doc('currentLocation')
+                                  .snapshots()
+                                  .listen((mapSnapshot) async {
+                                if (mapSnapshot.exists) {
+                                  Map<String, dynamic>? mapData = mapSnapshot.data();
+                                  if (mapData != null) {
+                                    Uint8List imageBytes = await _getCircleAvatarBytes(familyData['imagePath'], size: 250);
+                                    final icon = BitmapDescriptor.fromBytes(imageBytes);
+
+                                    setState(() {
+                                      _markers.add(Marker(
+                                        markerId: MarkerId(familyId),
+                                        position: LatLng(mapData['latitude'], mapData['longitude']),
+                                        icon: icon,
+                                        infoWindow: InfoWindow(title: familyData['name']),
+                                        visible: true,
+                                      ));
+                                    });
+                                  }
+                                }
+                              });
+                            }
+                          }
+                        });
+                      });
                     },
                     activeColor: Colors.blue,
                     secondary: imagePath != 'default_image_path'
@@ -487,8 +529,50 @@ class _MapScreenState extends State<MapScreen> {
         );
       },
     );
-  }
 
+    // 리스너 추가하여 마커 상태 변경
+    FirebaseFirestore.instance
+        .collection('USERLIST')
+        .where('key', isEqualTo: userKey)
+        .snapshots()
+        .listen((familySnapshot) {
+      setState(() {
+        _markers.clear();
+        for (var familyDoc in familySnapshot.docs) {
+          final familyData = familyDoc.data();
+          String familyId = familyDoc.id;
+
+          if (userData['whiteList'].contains(familyData['email'])) {
+            FirebaseFirestore.instance
+                .collection('USERLIST')
+                .doc(familyId)
+                .collection('MAP')
+                .doc('currentLocation')
+                .snapshots()
+                .listen((mapSnapshot) async {
+              if (mapSnapshot.exists) {
+                Map<String, dynamic>? mapData = mapSnapshot.data();
+                if (mapData != null) {
+                  Uint8List imageBytes = await _getCircleAvatarBytes(familyData['imagePath'], size: 250);
+                  final icon = BitmapDescriptor.fromBytes(imageBytes);
+
+                  setState(() {
+                    _markers.add(Marker(
+                      markerId: MarkerId(familyId),
+                      position: LatLng(mapData['latitude'], mapData['longitude']),
+                      icon: icon,
+                      infoWindow: InfoWindow(title: familyData['name']),
+                      visible: true,
+                    ));
+                  });
+                }
+              }
+            });
+          }
+        }
+      });
+    });
+  }
 
 
   Future<void> _logout() async {
