@@ -48,7 +48,6 @@ class _MapScreenState extends State<MapScreen> {
   String? _userName;
   String? _userImage;
   double _heading = 0;
-  Map<String, bool> _switchValues = {};
   Set<Marker> _markers = {};
 
   @override
@@ -98,6 +97,19 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _initializeFamilyMarkers({required String userKey}) async {
+    QuerySnapshot<Map<String, dynamic>> userQuerySnapshot = await FirebaseFirestore.instance
+        .collection('USERLIST')
+        .where('email', isEqualTo: widget.userId)
+        .get();
+
+    if (userQuerySnapshot.docs.isEmpty) {
+      print('User document not found');
+      return;
+    }
+
+    DocumentSnapshot<Map<String, dynamic>> userDoc = userQuerySnapshot.docs.first;
+    List<dynamic> whiteList = userDoc.data()?['whiteList'] ?? [];
+
     FirebaseFirestore.instance
         .collection('USERLIST')
         .where('key', isEqualTo: userKey)
@@ -108,37 +120,40 @@ class _MapScreenState extends State<MapScreen> {
         for (var familyDoc in familySnapshot.docs) {
           final familyData = familyDoc.data();
           String familyId = familyDoc.id;
-          _switchValues[familyId] = familyData['isSwitchOn'] ?? false;
 
-          FirebaseFirestore.instance
-              .collection('USERLIST')
-              .doc(familyId)
-              .collection('MAP')
-              .doc('currentLocation')
-              .snapshots()
-              .listen((mapSnapshot) async {
-            if (mapSnapshot.exists) {
-              Map<String, dynamic>? mapData = mapSnapshot.data();
-              if (mapData != null) {
-                Uint8List imageBytes = await _getCircleAvatarBytes(familyData['imagePath'], size: 250);
-                final icon = BitmapDescriptor.fromBytes(imageBytes);
+          if (whiteList.contains(familyData['email'])) {
+            FirebaseFirestore.instance
+                .collection('USERLIST')
+                .doc(familyId)
+                .collection('MAP')
+                .doc('currentLocation')
+                .snapshots()
+                .listen((mapSnapshot) async {
+              if (mapSnapshot.exists) {
+                Map<String, dynamic>? mapData = mapSnapshot.data();
+                if (mapData != null) {
+                  Uint8List imageBytes = await _getCircleAvatarBytes(familyData['imagePath'], size: 250);
+                  final icon = BitmapDescriptor.fromBytes(imageBytes);
 
-                setState(() {
-                  _markers.add(Marker(
-                    markerId: MarkerId(familyId),
-                    position: LatLng(mapData['latitude'], mapData['longitude']),
-                    icon: icon,
-                    infoWindow: InfoWindow(title: familyData['name']),
-                    visible: _switchValues[familyId] ?? false,
-                  ));
-                });
+                  setState(() {
+                    _markers.add(Marker(
+                      markerId: MarkerId(familyId),
+                      position: LatLng(mapData['latitude'], mapData['longitude']),
+                      icon: icon,
+                      infoWindow: InfoWindow(title: familyData['name']),
+                      visible: true,
+                    ));
+                  });
+                }
               }
-            }
-          });
+            });
+          }
         }
       });
     });
   }
+
+
 
 
   Future<void> _getCurrentLocation() async {
@@ -293,7 +308,20 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  void _showBottomSheet() {
+  void _showBottomSheet() async {
+    QuerySnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance
+        .collection('USERLIST')
+        .where('email', isEqualTo: widget.userId)
+        .get();
+
+    if (userDoc.docs.isEmpty) {
+      print('User document not found');
+      return;
+    }
+
+    DocumentSnapshot user = userDoc.docs.first;
+    bool isAdmin = user['isAdmin'] ?? false;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -336,7 +364,9 @@ class _MapScreenState extends State<MapScreen> {
                         onTap: () {
                           Navigator.pushAndRemoveUntil(
                             context,
-                            MaterialPageRoute(builder: (context) => UserEditApp()),
+                            MaterialPageRoute(
+                              builder: (context) => UserEditApp(user: user, isAdmin: isAdmin),
+                            ),
                                 (Route<dynamic> route) => false,
                           );
                         },
@@ -378,6 +408,8 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
+
+
   void _showFamilyInfoBottomSheet() async {
     QuerySnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance
         .collection('USERLIST')
@@ -408,6 +440,7 @@ class _MapScreenState extends State<MapScreen> {
               }
 
               final familyCollection = snapshot.data!.docs;
+              List<dynamic> whiteList = userData['whiteList'] ?? [];
 
               return ListView.builder(
                 itemCount: familyCollection.length,
@@ -417,7 +450,7 @@ class _MapScreenState extends State<MapScreen> {
                   if (familyEmail == widget.userId) {
                     return Container(); // 본인은 리스트에 포함되지 않음
                   }
-                  bool isSwitchOn = familyData['isSwitchOn'] ?? false;
+                  bool isInWhiteList = whiteList.contains(familyEmail);
                   String familyName = familyData['name'] ?? 'Unknown';
                   String imagePath = familyData['imagePath'] ?? 'default_image_path';
 
@@ -426,12 +459,17 @@ class _MapScreenState extends State<MapScreen> {
                       familyName,
                       style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
                     ),
-                    value: isSwitchOn,
-                    onChanged: (bool value) {
-                      FirebaseFirestore.instance
-                          .collection('USERLIST')
-                          .doc(familyCollection[index].id)
-                          .update({'isSwitchOn': value});
+                    value: isInWhiteList,
+                    onChanged: (bool value) async {
+                      DocumentReference userRef = FirebaseFirestore.instance.collection('USERLIST').doc(userDoc.docs.first.id);
+
+                      if (value) {
+                        whiteList.add(familyEmail);
+                      } else {
+                        whiteList.remove(familyEmail);
+                      }
+
+                      await userRef.update({'whiteList': whiteList});
                     },
                     activeColor: Colors.blue,
                     secondary: imagePath != 'default_image_path'
@@ -450,6 +488,7 @@ class _MapScreenState extends State<MapScreen> {
       },
     );
   }
+
 
 
   Future<void> _logout() async {

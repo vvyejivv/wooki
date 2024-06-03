@@ -32,14 +32,12 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   List<types.Message> _messages = [];
   late final types.User _user;
-  late ScrollController _scrollController;
   Map<String, Map<String, String>> _participants = {};
 
   @override
   void initState() {
     super.initState();
     _user = types.User(id: widget.userId);
-    _scrollController = ScrollController();
     _loadMessages();
     _loadParticipants();
   }
@@ -115,7 +113,7 @@ class _ChatPageState extends State<ChatPage> {
       final file = File(result.files.single.path!);
       final storageRef = FirebaseStorage.instance
           .ref()
-          .child('files/${DateTime.now().millisecondsSinceEpoch}_${result.files.single.name}');
+          .child('files/chatrooms/${DateTime.now().millisecondsSinceEpoch}_${result.files.single.name}');
       await storageRef.putFile(file);
 
       final downloadUrl = await storageRef.getDownloadURL();
@@ -145,7 +143,7 @@ class _ChatPageState extends State<ChatPage> {
       final file = File(result.path);
       final storageRef = FirebaseStorage.instance
           .ref()
-          .child('images/${DateTime.now().millisecondsSinceEpoch}.jpg');
+          .child('images/chatrooms/${DateTime.now().millisecondsSinceEpoch}.jpg');
       await storageRef.putFile(file);
 
       final downloadUrl = await storageRef.getDownloadURL();
@@ -303,7 +301,7 @@ class _ChatPageState extends State<ChatPage> {
         ),
         child: Text(
           text,
-          style: const TextStyle(color: Colors.black),
+          style: const TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.w500, color: Colors.black),
         ),
       );
     }
@@ -318,41 +316,77 @@ class _ChatPageState extends State<ChatPage> {
     if (message.author.id != _user.id) {
       final user = _participants[message.author.id];
       if (user != null) {
-        return Column(
+        return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  backgroundImage: NetworkImage(user['imagePath']!),
-                  radius: 15,
-                ),
-                SizedBox(width: 8),
-                Text(user['name']!),
-              ],
+            CircleAvatar(
+              backgroundImage: NetworkImage(user['imagePath']!),
+              radius: 30, // 프로필 이미지 크기 조정
             ),
-            SizedBox(height: 5),
-            Container(
-              color: Color.fromRGBO(236, 234, 233, 1), // 상대방 메시지 배경색 설정
-              child: child,
+            SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user['name']!,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300], // 상대방 메시지 배경색 설정
+                      borderRadius: BorderRadius.circular(16.0),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(0.0), // 메시지 박스 패딩 조정
+                      child: child,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         );
       }
     }
-    return Container(
-      color: Color.fromRGBO(109, 96, 90, 1), // 본인의 메시지 배경색을 설정
-      child: child,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Color.fromRGBO(109, 96, 90, 1), // 본인의 메시지 배경색 설정
+                  borderRadius: BorderRadius.circular(16.0),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(0.0), // 메시지 박스 패딩 조정
+                  child: DefaultTextStyle(
+                    style: TextStyle(color: Colors.white), // 본인의 메시지 글자색 설정
+                    child: child,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
-
 
 
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text(widget.roomName),
-      backgroundColor: const Color.fromRGBO(255, 253, 239, 1),
+      title: Text(widget.roomName, style: TextStyle(color: Colors.white),),
+      backgroundColor: const Color(0xff6D605A),
+      iconTheme: IconThemeData(color: Colors.white),
     ),
     drawer: Drawer(
       backgroundColor: Color(0xffFFFDEF),
