@@ -6,6 +6,8 @@ import 'dart:math';
 import 'find_id2.dart';
 import 'package:provider/provider.dart';
 import 'search_id.dart';
+import 'package:wooki/login/Login_main.dart';
+import 'package:wooki/Join/Join1.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,125 +43,150 @@ class FindIDPage extends StatefulWidget {
 class _FindIDPageState extends State<FindIDPage> {
   final TextEditingController phoneController = TextEditingController();
   final String serverUrl = 'http://10.0.2.2:4000/send-sms';
-  bool _isVerified = false; // 인증 상태를 관리하는 변수
+  bool _isVerified = false;
 
-  // 6자리 난수 생성 함수
   int generateSixDigitRandomNumber() {
     Random random = Random();
-    int min = 100000; // 6자리 최소값
-    int max = 999999; // 6자리 최대값
+    int min = 100000;
+    int max = 999999;
     return min + random.nextInt(max - min + 1);
   }
 
   void _showErrorDialog(BuildContext context) {
     showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text("오류"),
-            content: Text("인증번호가 틀렸습니다."),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text("확인"),
-              ),
-            ],
-          );
-        }
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Color(0xFFFFFDEF),
+          title: Text("오류"),
+          content: Text(
+              "인증번호가 틀렸습니다.",
+            style: TextStyle(
+              fontFamily: 'Pretendard-SemiBold',
+              fontSize: 15,
+              color: Color(0xFF3A281F),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("확인"),
+            ),
+          ],
+        );
+      },
     );
   }
 
   void _showEmptyDialog(BuildContext context) {
     showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Container(),
-            content: Text("폰번호를 입력하세요."),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text("확인"),
-              ),
-            ],
-          );
-        }
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Color(0xFFFFFDEF),
+          title: Container(),
+          content: Text("폰번호를 입력하세요.",style: TextStyle(
+            fontFamily: 'Pretendard-SemiBold',
+            fontSize: 15,
+            color: Color(0xFF3A281F),
+            fontWeight: FontWeight.bold,
+          ),),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("확인"),
+            ),
+          ],
+        );
+      },
     );
   }
 
   void _showNoDialog(BuildContext context) {
     showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Container(),
-            content: Text("가입한 번호가 없습니다."),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text("확인"),
-              ),
-            ],
-          );
-        }
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Color(0xFFFFFDEF),
+          title: Container(),
+          content: Text("가입한 번호가 없습니다.",style: TextStyle(
+            fontFamily: 'Pretendard-SemiBold',
+            fontSize: 15,
+            color: Color(0xFF3A281F),
+            fontWeight: FontWeight.bold,
+          ),),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("확인"),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  void _showDialog(BuildContext context, int randomCode){
+  void _showDialog(BuildContext context, int randomCode) {
     final TextEditingController codeController = TextEditingController();
     showDialog(
-        context : context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text("인증번호"),
-            content: TextField(
-              controller: codeController,
-              decoration: InputDecoration(
-                labelText: '인증번호 입력',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.number,
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Color(0xFFFFFDEF),
+          title: Text("인증번호",style: TextStyle(
+            fontFamily: 'Pretendard-SemiBold',
+            fontSize: 15,
+            color: Color(0xFF3A281F),
+            fontWeight: FontWeight.bold,
+          ),),
+          content: TextField(
+            controller: codeController,
+            decoration: InputDecoration(
+              labelText: '인증번호 입력',
+              border: OutlineInputBorder(),
             ),
-            actions: [
-              TextButton(
-                  onPressed: () {
-                    String enteredCode = codeController.text;
-                    if (enteredCode == randomCode.toString()) {
-                      setState(() {
-                        _isVerified = true; // 인증 완료 시 true로 설정
-                      });
-                      Navigator.of(context).pop(); // 인증번호가 맞을 때 다이얼로그 닫기
-                    } else {
-                      _showErrorDialog(context); // 인증번호가 틀릴 때 오류 다이얼로그 표시
-                    }
-                  },
-                  child: Text("확인")
-              ),
-              TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text("취소")
-              )
-            ],
-          );
-        }
+            keyboardType: TextInputType.number,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                String enteredCode = codeController.text;
+                if (enteredCode == randomCode.toString()) {
+                  setState(() {
+                    _isVerified = true;
+                  });
+                  Navigator.of(context).pop();
+                } else {
+                  _showErrorDialog(context);
+                }
+              },
+              child: Text("확인"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("취소"),
+            )
+          ],
+        );
+      },
     );
   }
 
- // 나중에 서버로 변경
   void sendSMS(BuildContext context, String phone) async {
-    int randomCode = generateSixDigitRandomNumber(); // 6자리 난수 생성
+    int randomCode = generateSixDigitRandomNumber();
     Map<String, String> data = {
-      'to': phone, // 사용자가 입력하는 번호
-      'from': '01046548947', // 고정
-      'text': '인증코드: $randomCode' // 인증에 사용할 경우 난수 6자ㅏ리
+      'to': phone,
+      'from': '01046548947',
+      'text': '인증코드: $randomCode'
     };
     try {
       final response = await http.post(
@@ -183,8 +210,14 @@ class _FindIDPageState extends State<FindIDPage> {
   Widget build(BuildContext context) {
     final searchId = Provider.of<SearchId>(context);
     return Scaffold(
+      backgroundColor: Color(0xFFFFFDEF),
       appBar: AppBar(
-        title: Text('아이디 찾기'),
+        automaticallyImplyLeading: false,
+        backgroundColor: Color(0xFFFFFDEF),
+        title: Container(
+          margin: EdgeInsets.only(top: 60, bottom: 50),
+          child: Image.asset('assets/img/wooki_logo.png'),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -192,15 +225,19 @@ class _FindIDPageState extends State<FindIDPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              '아이디 찾기',
-              style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+              '서비스 이용을 위해 인증을 완료해주세요.',
+              style: TextStyle(fontSize: 16.0, color: Colors.black),
             ),
             SizedBox(height: 20.0),
             TextField(
               controller: phoneController,
               decoration: InputDecoration(
-                labelText: '폰번호 입력',
-                border: OutlineInputBorder(),
+                labelText: '폰번호를 입력해주세요.',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                filled: true,
+                fillColor: Colors.white,
               ),
               keyboardType: TextInputType.phone,
               enabled: !_isVerified,
@@ -208,19 +245,15 @@ class _FindIDPageState extends State<FindIDPage> {
             SizedBox(height: 20.0),
             ElevatedButton(
               onPressed: () async {
-                // 아이디 찾기 로직 추가
-                // SearchId searchId = SearchId();
-                // String phone = phoneController.text;
-                // await searchId.search(phone);
                 if (!_isVerified) {
                   String phone = phoneController.text;
-                  if (phone.isEmpty){
+                  if (phone.isEmpty) {
                     _showEmptyDialog(context);
                   } else {
                     await searchId.search(phone);
                     if (searchId.isSearch) {
                       print('입력한 폰번호: $phone');
-                      sendSMS(context, phone); // SMS 전송 후 다이얼로그 표시
+                      sendSMS(context, phone);
                     } else {
                       _showNoDialog(context);
                     }
@@ -232,8 +265,61 @@ class _FindIDPageState extends State<FindIDPage> {
                   );
                 }
               },
-              child: Text(_isVerified ? '다음' : '인증번호 전송'),
+              child: Text(
+                  _isVerified ? '다음' : '인증번호 전송',
+                  style: TextStyle(
+                  fontFamily: 'Pretendard-SemiBold',
+                  fontSize: 15,
+                  color: Color(0xFF3A281F),
+                  fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFFFE458),
+                foregroundColor: Color(0xFF3A281F),
+                minimumSize: Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
             ),
+            SizedBox(height: 10.0),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginApp())
+                );
+              },
+              child: Text(
+                  '로그인',
+                style: TextStyle(
+                    fontFamily: 'Pretendard-SemiBold',
+                    fontSize: 15,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF6D605A),
+                minimumSize: Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+            ),
+            SizedBox(height: 20.0),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => JoinEx2())
+                );
+              },
+              child: Text(
+                '회원가입',
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+            SizedBox(height: 20.0),
           ],
         ),
       ),

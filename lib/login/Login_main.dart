@@ -16,6 +16,7 @@ import 'package:wooki/map/MapMain.dart';
 import 'package:wooki/Join/Join1.dart';
 import 'package:wooki/find/find_id.dart';
 import 'package:wooki/find/search_id.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,7 +30,14 @@ void main() async {
     javaScriptAppKey: '4ad5aa841d079ff244bbdbbad04eae08',
   );
 
-  runApp(const LoginApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => SearchId()),
+      ],
+      child: const LoginApp(),
+    ),
+  );
 }
 
 class LoginApp extends StatelessWidget {
