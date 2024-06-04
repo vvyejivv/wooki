@@ -77,7 +77,7 @@ class _ChatPageState extends State<ChatPage> {
                 },
                 child: const Align(
                   alignment: AlignmentDirectional.centerStart,
-                  child: Text('사진', style: TextStyle(color: Colors.black)),
+                  child: Text('사진', style: TextStyle(color: Color(0xFF3A281F))),
                 ),
               ),
               TextButton(
@@ -87,14 +87,14 @@ class _ChatPageState extends State<ChatPage> {
                 },
                 child: const Align(
                   alignment: AlignmentDirectional.centerStart,
-                  child: Text('파일', style: TextStyle(color: Colors.black)),
+                  child: Text('파일', style: TextStyle(color: Color(0xFF3A281F))),
                 ),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: const Align(
                   alignment: AlignmentDirectional.centerStart,
-                  child: Text('취소', style: TextStyle(color: Colors.black)),
+                  child: Text('취소', style: TextStyle(color: Color(0xFF3A281F))),
                 ),
               ),
             ],
@@ -301,7 +301,7 @@ class _ChatPageState extends State<ChatPage> {
         ),
         child: Text(
           text,
-          style: const TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.w500, color: Colors.black),
+          style: const TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.w500, color: Color(0xFF3A281F)),
         ),
       );
     }

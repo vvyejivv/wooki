@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import '../firebase_options.dart';
 import '../map/MapMain.dart';
+import '../CustomerServiceCenter/main.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -85,7 +86,7 @@ class UserListScreen extends StatelessWidget {
           icon: Icon(Icons.arrow_back),
         ),
         backgroundColor: Color.fromARGB(255, 255, 253, 239),
-        title: Text('사용자 목록'),
+        title: Text('사용자 목록', style: TextStyle(fontWeight: FontWeight.w600),),
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(1.0),
           child: Divider(
@@ -93,6 +94,16 @@ class UserListScreen extends StatelessWidget {
             color: Colors.grey,
           ),
         ),
+        actions: [
+          IconButton(onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => Customer(),
+                )
+            );
+          }, icon: Icon(Icons.help))
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('USERLIST').snapshots(),
@@ -232,7 +243,7 @@ class _UserEditScreenState extends State<UserEditScreen> {
                   ),
                   SizedBox(height: 20),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ElevatedButton(
                         onPressed: () async {
@@ -258,11 +269,12 @@ class _UserEditScreenState extends State<UserEditScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFFFFE458),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(5),
                           ),
                         ),
-                        child: Text('예', style: TextStyle(color: Colors.black),),
+                        child: Text('예', style: TextStyle(color: Color(0xFF3A281F), fontWeight: FontWeight.bold),),
                       ),
+                      SizedBox(width: 15), // 버튼 간의 간격을 좁히기 위해 설정
                       ElevatedButton(
                         onPressed: () {
                           Navigator.of(context, rootNavigator: true).pop(); // Close the dialog
@@ -270,10 +282,10 @@ class _UserEditScreenState extends State<UserEditScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF6D605A),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(5),
                           ),
                         ),
-                        child: Text('아니오', style: TextStyle(color: Colors.white),),
+                        child: Text('아니오', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
                       ),
                     ],
                   ),
@@ -311,12 +323,6 @@ class _UserEditScreenState extends State<UserEditScreen> {
             color: Colors.grey,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.delete),
-            onPressed: _deleteUser,
-          ),
-        ],
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
@@ -381,29 +387,30 @@ class _UserEditScreenState extends State<UserEditScreen> {
               ),
               SizedBox(height: 20),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(
                     onPressed: _updateUser,
                     style: ElevatedButton.styleFrom(
                       minimumSize: Size(150, 50), // 버튼 크기 조정
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10), // 둥근 모서리 직사각형
+                        borderRadius: BorderRadius.circular(5), // 둥근 모서리 직사각형
                       ),
                       backgroundColor: Color(0xFFFFE458),
                     ),
-                    child: Text('업데이트', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),),
+                    child: Text('업데이트', style: TextStyle(color: Color(0xFF3A281F), fontWeight: FontWeight.w600, fontSize: 15),),
                   ),
+                  SizedBox(width: 15),
                   ElevatedButton(
                     onPressed: _deleteUser,
                     style: ElevatedButton.styleFrom(
-                      minimumSize: Size(150, 50), // 버튼 크기 조정
+                      minimumSize: Size(100, 50), // 버튼 크기 조정
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10), // 둥근 모서리 직사각형
+                        borderRadius: BorderRadius.circular(5), // 둥근 모서리 직사각형
                       ),
                       backgroundColor: Color(0xFF6D605A),
                     ),
-                    child: Text('탈퇴', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),),
+                    child: Text('탈퇴', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15),),
                   ),
                 ],
               ),
