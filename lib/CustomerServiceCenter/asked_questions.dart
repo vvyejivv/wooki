@@ -10,7 +10,7 @@ class AskedQuestions extends StatefulWidget {
 
 class _AskedQuestionsState extends State<AskedQuestions> {
   final FirestoreService _firestoreService =
-  FirestoreService(); // FirestoreService 인스턴스 생성
+      FirestoreService(); // FirestoreService 인스턴스 생성
   late final Stream<List<FAQ>> _faqStream; // FAQ 데이터를 가져오는 스트림
   String? _selectedCategory; // 선택된 카테고리
   List<FAQ> _allFaqs = []; // 모든 FAQ 목록
@@ -43,17 +43,17 @@ class _AskedQuestionsState extends State<AskedQuestions> {
       if (query.isEmpty) {
         // 검색어가 없는 경우
         _filteredFaqs =
-        (_selectedCategory == null || _selectedCategory!.isEmpty)
-            ? _allFaqs // 선택된 카테고리가 없으면 모든 FAQ 표시
-            : _allFaqs
-            .where((faq) => faq.category == _selectedCategory)
-            .toList(); // 선택된 카테고리에 해당하는 FAQ 표시
+            (_selectedCategory == null || _selectedCategory!.isEmpty)
+                ? _allFaqs // 선택된 카테고리가 없으면 모든 FAQ 표시
+                : _allFaqs
+                    .where((faq) => faq.category == _selectedCategory)
+                    .toList(); // 선택된 카테고리에 해당하는 FAQ 표시
       } else {
         // 검색어가 있는 경우
         _filteredFaqs = _allFaqs.where((faq) {
           return faq.question
-              .toLowerCase()
-              .contains(query.toLowerCase()) && // 질문에서 검색어 포함 여부 확인
+                  .toLowerCase()
+                  .contains(query.toLowerCase()) && // 질문에서 검색어 포함 여부 확인
               (_selectedCategory == null ||
                   _selectedCategory!.isEmpty ||
                   faq.category ==
@@ -67,7 +67,11 @@ class _AskedQuestionsState extends State<AskedQuestions> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('자주하는질문', textAlign: TextAlign.center), // 앱 바 타이틀
+        backgroundColor: Color(0xFFFFFDEF),
+        title: const Text(
+          '자주하는질문',
+          textAlign: TextAlign.center,
+        ), // 앱 바 타이틀
         centerTitle: true,
       ),
       body: Column(

@@ -20,6 +20,8 @@ class _HomeScreenState extends State<ToHomeScreen> {
   ]; // 전체 항목 리스트
   List<String> filteredItems = []; // 필터링된 항목 리스트
 
+  bool enabled = true; // ListTile의 활성화 여부를 나타내는 변수 추가
+
   @override
   void initState() {
     super.initState();
@@ -96,7 +98,7 @@ class _HomeScreenState extends State<ToHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        //backgroundColor: Color(0xFFFFFDEF),
+        backgroundColor: Color(0xFFFFFDEF),
         title: const Text(
           '홈화면',
           textAlign: TextAlign.center,
@@ -127,7 +129,9 @@ class _HomeScreenState extends State<ToHomeScreen> {
           ),
           SizedBox(
             height: 10,
-            child: Container(color: Color(0xFFFFFDEF),),
+            child: Container(
+              color: Color(0xFFFFFDEF),
+            ),
           ), // 위젯 간 간격 조절
           // 기능 버튼들
           SingleChildScrollView(
@@ -146,7 +150,12 @@ class _HomeScreenState extends State<ToHomeScreen> {
               ),
             ),
           ),
-          SizedBox(height: 10,child: Container(color: Color(0xFFFFFDEF),),),
+          SizedBox(
+            height: 10,
+            child: Container(
+              color: Color(0xFFFFFDEF),
+            ),
+          ),
           // 피싱/스미싱/사칭 사기 주의 메시지
           Container(
             padding: EdgeInsets.all(16),
@@ -177,7 +186,12 @@ class _HomeScreenState extends State<ToHomeScreen> {
               ],
             ),
           ),
-          SizedBox(height: 10,child: Container(color: Color(0xFFFFFDEF),),),
+          SizedBox(
+            height: 10,
+            child: Container(
+              color: Color(0xFFFFFDEF),
+            ),
+          ),
           // 그 외 문의 빠르게 해결하세요 메시지
           GestureDetector(
             onTap: () {
@@ -194,7 +208,12 @@ class _HomeScreenState extends State<ToHomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.question_answer, color: Colors.white),
-                  SizedBox(width: 8,child: Container(color: Color(0xFFFFFDEF),),),
+                  SizedBox(
+                    width: 8,
+                    child: Container(
+                      color: Color(0xFFFFFDEF),
+                    ),
+                  ),
                   Text(
                     '그 외 문의를 빠르게 해결하세요',
                     style: TextStyle(
@@ -207,7 +226,12 @@ class _HomeScreenState extends State<ToHomeScreen> {
               ),
             ),
           ),
-          SizedBox(height: 10,child: Container(color: Color(0xFFFFFDEF),),),
+          SizedBox(
+            height: 10,
+            child: Container(
+              color: Color(0xFFFFFDEF),
+            ),
+          ),
           // 필터링된 항목 리스트 표시
           Expanded(
             child: ListView.builder(
@@ -242,10 +266,31 @@ class _HomeScreenState extends State<ToHomeScreen> {
                       );
                     }
                   },
-                  child: ListTile(
-                    title: Text(filteredItems[index]),
-                    subtitle: Text(_getSubtitle(filteredItems[index])),
+                  //미완성
+                  child: Container(
+                    // 배경색은 활성화 여부와 상관없이 고정된 값으로 지정됩니다.
+                    color: Color(0xFFFFFDEF),
+                    child: ListTile(
+                      // 활성화되었을 때의 배경색
+                      tileColor: enabled ? Colors.white : Colors.grey[300],
+                      hoverColor: Colors.black, // 마우스 호버시 배경색
+                      visualDensity: VisualDensity(vertical: -4, horizontal: 0),
+                      title: Text(filteredItems[index]),
+                      subtitle: Text(_getSubtitle(filteredItems[index])),
+                      isThreeLine: true,
+                      dense: false,
+                      selected: false,
+                      selectedColor: Colors.teal,
+                      focusColor: Colors.deepPurpleAccent,
+                      enabled: enabled,
+                      onTap: () {},
+                      onLongPress: () {},
+                      horizontalTitleGap: 10,
+                      minLeadingWidth: 10,
+                      contentPadding: EdgeInsets.fromLTRB(15, 15, 15, 15),
+                    ),
                   ),
+
                 );
               },
             ),
@@ -305,7 +350,10 @@ class LatestNewsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFFFFDEF),
-      appBar: AppBar(title: Text('최신 소식')),
+      appBar: AppBar(
+        title: Text('최신 소식'),
+        backgroundColor: Color(0xFFFFFFDEF),
+      ),
       body: Center(child: Text('최신 소식 화면')),
     );
   }
@@ -316,7 +364,10 @@ class CustomerReviewsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFFFFDEF),
-      appBar: AppBar(title: Text('고객 리뷰')),
+      appBar: AppBar(
+        title: Text('고객 리뷰'),
+        backgroundColor: Color(0xFFFFFFDEF),
+      ),
       body: Center(child: Text('고객 리뷰 화면')),
     );
   }
@@ -327,7 +378,10 @@ class CustomerSupportScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFFFFDEF),
-      appBar: AppBar(title: Text('고객 지원')),
+      appBar: AppBar(
+        title: Text('고객 지원'),
+        backgroundColor: Color(0xFFFFFFDEF),
+      ),
       body: Center(child: Text('고객 지원 화면')),
     );
   }
@@ -338,7 +392,10 @@ class RecentActivitiesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFFFFDEF),
-      appBar: AppBar(title: Text('최근 활동')),
+      appBar: AppBar(
+        title: Text('최근 활동'),
+        backgroundColor: Color(0xFFFFFFDEF),
+      ),
       body: Center(child: Text('최근 활동 화면')),
     );
   }

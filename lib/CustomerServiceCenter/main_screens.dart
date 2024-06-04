@@ -39,7 +39,7 @@ class _MainScreensState extends State<MainScreens>
     String? userEmail = prefs.getString('email'); // 이메일 불러오기
     if (userEmail != null) {
       bool adminStatus =
-      await firestoreService.isAdminByEmail(userEmail); // 관리자 여부 확인
+          await firestoreService.isAdminByEmail(userEmail); // 관리자 여부 확인
       setState(() {
         email = userEmail; // 사용자 이메일 설정
         isAdmin = adminStatus; // 관리자 여부 설정
@@ -61,17 +61,23 @@ class _MainScreensState extends State<MainScreens>
         backgroundColor: Color(0xFFFFFDEF),
         leading: IconButton(
           icon:
-          const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
+              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
           // 뒤로 가기 아이콘
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MapScreen(
-                  userId: '',
+            if (email != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MapScreen(
+                    userId: email!, // 여기서 email은 null이 아님
+                  ),
                 ),
-              ),
-            );
+              );
+            } else {
+              // email이 null일 때의 처리 로직
+              ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("이메일 정보가 필요합니다. 로그인을 확인해주세요.")));
+            }
           },
         ),
         bottom: TabBar(
