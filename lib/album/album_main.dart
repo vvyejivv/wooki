@@ -23,7 +23,7 @@ class SnsApp extends StatelessWidget {
       title: 'Flutter SNS',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        fontFamily: 'Pretendard', // 전체 앱에 적용될 기본 폰트 설정
+        fontFamily: 'Pretendard',
         textTheme: TextTheme(
           bodyLarge: TextStyle(fontFamily: 'Pretendard'),
           bodyMedium: TextStyle(fontFamily: 'Pretendard'),
@@ -54,17 +54,45 @@ class PostListPage extends StatefulWidget {
 
 class _PostListPageState extends State<PostListPage> {
   String? _currentUserEmail;
+  String? _currentUserKey;
+  List<String> _userEmailsWithSameKey = [];
 
   @override
   void initState() {
     super.initState();
-    _loadCurrentUserEmail();
+    _loadCurrentUserEmailAndKey();
   }
 
-  Future<void> _loadCurrentUserEmail() async {
+  Future<void> _loadCurrentUserEmailAndKey() async {
     final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('email');
+    if (email != null) {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('USERLIST')
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
+
+      if (userDoc.docs.isNotEmpty) {
+        final userKey = userDoc.docs.first['key'];
+        setState(() {
+          _currentUserEmail = email;
+          _currentUserKey = userKey;
+        });
+        _loadUserEmailsWithSameKey(userKey);
+      }
+    }
+  }
+
+  Future<void> _loadUserEmailsWithSameKey(String key) async {
+    final userDocs = await FirebaseFirestore.instance
+        .collection('USERLIST')
+        .where('key', isEqualTo: key)
+        .get();
+
+    final List<String> emails = userDocs.docs.map((doc) => doc['email'] as String).toList();
     setState(() {
-      _currentUserEmail = prefs.getString('email');
+      _userEmailsWithSameKey = emails;
     });
   }
 
@@ -165,11 +193,10 @@ class _PostListPageState extends State<PostListPage> {
                                       title: Text(userName),
                                       subtitle: Text(cdatetime),
                                       trailing: Transform.translate(
-                                        offset: Offset(10, 0), // 오른쪽으로 더 붙이기
+                                        offset: Offset(10, 0),
                                         child: IconButton(
                                           onPressed: () {
-                                            Navigator.of(context)
-                                                .pop(); // 모달 창 닫기
+                                            Navigator.of(context).pop();
                                           },
                                           icon: Icon(Icons.close),
                                         ),
@@ -179,14 +206,13 @@ class _PostListPageState extends State<PostListPage> {
                                       decoration: BoxDecoration(
                                         border: Border(
                                           bottom: BorderSide(
-                                              color: Colors.grey), // 하단 테두리만 설정
+                                              color: Colors.grey),
                                         ),
                                       ),
                                       child: Column(
                                         children: [
                                           Container(
                                             height: 300,
-                                            // 이미지가 더 크게 보이도록 높이를 늘림
                                             child: Stack(
                                               children: [
                                                 PageView.builder(
@@ -266,7 +292,6 @@ class _PostListPageState extends State<PostListPage> {
                               return ListView.builder(
                                 shrinkWrap: true,
                                 physics: NeverScrollableScrollPhysics(),
-                                // 리스트뷰 자체의 스크롤을 막음
                                 itemCount: comments.length,
                                 itemBuilder: (context, index) {
                                   final comment = comments[index];
@@ -354,13 +379,12 @@ class _PostListPageState extends State<PostListPage> {
                                                             8.0)),
                                                   ),
                                                   color: Color(
-                                                      0xfffffff4), // 여기에 원하는 배경색을 지정
+                                                      0xfffffff4),
                                                 )
                                               ] else ...[
                                                 Padding(
                                                   padding: EdgeInsets.only(
                                                       right: 12.0),
-                                                  // 왼쪽 패딩을 4.0으로 설정
                                                   child: Text(
                                                     commentDate,
                                                     style: TextStyle(
@@ -396,18 +420,18 @@ class _PostListPageState extends State<PostListPage> {
                           hintText: '   댓글을 입력하세요...',
                           border: UnderlineInputBorder(
                             borderSide:
-                            BorderSide(color: Colors.grey), // 기본 하단 테두리 색상
+                            BorderSide(color: Colors.grey),
                           ),
                           enabledBorder: UnderlineInputBorder(
                             borderSide: BorderSide(
-                                color: Colors.grey), // 비활성 상태 하단 테두리 색상
+                                color: Colors.grey),
                           ),
                           focusedBorder: UnderlineInputBorder(
                             borderSide: BorderSide(
-                                color: Colors.amber), // 활성 상태 하단 테두리 색상
+                                color: Colors.amber),
                           ),
                           contentPadding:
-                          EdgeInsets.only(right: 48.0), // 텍스트와 버튼 간격 조절
+                          EdgeInsets.only(right: 48.0),
                         ),
                         maxLines: 1,
                       ),
@@ -415,7 +439,6 @@ class _PostListPageState extends State<PostListPage> {
                         right: 0,
                         child: ElevatedButton(
                           onPressed: () async {
-                            // 댓글 전송 기능 추가
                             String comment = _commentController.text.trim();
                             if (comment.isNotEmpty) {
                               await FirebaseFirestore.instance
@@ -427,8 +450,8 @@ class _PostListPageState extends State<PostListPage> {
                                 'comment': comment,
                                 'timestamp': FieldValue.serverTimestamp(),
                               });
-                              _commentController.clear(); // 댓글 입력 후 입력 필드 초기화
-                              FocusScope.of(context).unfocus(); // 입력 필드 포커스 해제
+                              _commentController.clear();
+                              FocusScope.of(context).unfocus();
                             }
                           },
                           child: Text('작성'),
@@ -470,14 +493,42 @@ class _PostListPageState extends State<PostListPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('댓글 삭제'),
-          content: Text('댓글을 삭제하시겠습니까?'),
+          backgroundColor: Color(0xFFFFFDEF),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: Text(
+            '댓글 삭제',
+            style: TextStyle(
+              fontFamily: 'Pretendard-SemiBold',
+              fontSize: 15,
+              color: Color(0xFF3A281F),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            '댓글을 삭제하시겠습니까?',
+            style: TextStyle(
+              fontFamily: 'Pretendard-SemiBold',
+              fontSize: 15,
+              color: Color(0xFF3A281F),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('취소'),
+              child: Text(
+                '취소',
+                style: TextStyle(
+                  fontFamily: 'Pretendard-SemiBold',
+                  fontSize: 15,
+                  color: Color(0xFF3A281F),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
@@ -508,12 +559,13 @@ class _PostListPageState extends State<PostListPage> {
       context: context,
       builder: (context) {
         return Dialog(
+          backgroundColor: Color(0xFFFFFDEF),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           child: Container(
-            width: MediaQuery.of(context).size.width * 0.9, // 화면 너비의 90%
-            height: 400, // 고정된 높이
+            width: MediaQuery.of(context).size.width * 0.9,
+            height: 400,
             padding: EdgeInsets.all(16),
             child: Column(
               children: [
@@ -536,7 +588,15 @@ class _PostListPageState extends State<PostListPage> {
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      child: Text('취소'),
+                      child: Text(
+                        '취소',
+                        style: TextStyle(
+                          fontFamily: 'Pretendard-SemiBold',
+                          fontSize: 15,
+                          color: Color(0xFF3A281F),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                     ElevatedButton(
                       onPressed: () async {
@@ -590,6 +650,7 @@ class _PostListPageState extends State<PostListPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Color(0xFFFFFDEF),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(12),
@@ -674,7 +735,15 @@ class _PostListPageState extends State<PostListPage> {
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
-                          child: Text('취소'),
+                          child: Text(
+                            '취소',
+                            style: TextStyle(
+                              fontFamily: 'Pretendard-SemiBold',
+                              fontSize: 15,
+                              color: Color(0xFF3A281F),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                         ElevatedButton(
                           onPressed: () async {
@@ -720,14 +789,42 @@ class _PostListPageState extends State<PostListPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('게시글 삭제'),
-          content: Text('게시글을 삭제하시겠습니까?'),
+          backgroundColor: Color(0xFFFFFDEF),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: Text(
+            '게시글 삭제',
+            style: TextStyle(
+              fontFamily: 'Pretendard-SemiBold',
+              fontSize: 15,
+              color: Color(0xFF3A281F),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            '게시글을 삭제하시겠습니까?',
+            style: TextStyle(
+              fontFamily: 'Pretendard-SemiBold',
+              fontSize: 15,
+              color: Color(0xFF3A281F),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('취소'),
+              child: Text(
+                '취소',
+                style: TextStyle(
+                  fontFamily: 'Pretendard-SemiBold',
+                  fontSize: 15,
+                  color: Color(0xFF3A281F),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
@@ -792,6 +889,7 @@ class _PostListPageState extends State<PostListPage> {
         child: StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('posts')
+              .where('email', whereIn: _userEmailsWithSameKey.isEmpty ? [''] : _userEmailsWithSameKey)
               .orderBy('cdatetime', descending: true)
               .snapshots(),
           builder: (context, snapshot) {
@@ -814,9 +912,9 @@ class _PostListPageState extends State<PostListPage> {
                 final imageUrls = List<String>.from(post['imageUrls']);
                 final cdatetime = (post['cdatetime'] as Timestamp).toDate();
                 final formattedDate =
-                DateFormat('yyyy-MM-dd HH:mm').format(cdatetime); // 날짜 포맷팅
+                DateFormat('yyyy-MM-dd HH:mm').format(cdatetime);
                 final pageController = PageController();
-                final postId = post.id; // Post ID 가져오기
+                final postId = post.id;
 
                 return Card(
                   color: Color(0xfffffff1),
@@ -892,7 +990,7 @@ class _PostListPageState extends State<PostListPage> {
                                           borderRadius: BorderRadius.all(
                                               Radius.circular(8.0)),
                                         ),
-                                        color: Color(0xfffffff1), // 원하는 배경색 지정
+                                        color: Color(0xfffffff1),
                                       ),
                                     ),
                                 ],

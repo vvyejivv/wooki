@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wooki/login/Login_main.dart';
 
 void main() {
   runApp(FindID2());
@@ -55,7 +56,16 @@ class _FindIDPageState extends State<FindIDPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("비밀번호 변경"),
+          backgroundColor: Color(0xFFFFFDEF), // 모달창 배경색 설정
+          title: Text(
+            "비밀번호 변경",
+            style: TextStyle(
+              fontFamily: 'Pretendard-SemiBold',
+              fontSize: 15,
+              color: Color(0xFF3A281F),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           content: Form(
             key: _formKey,
             child: Column(
@@ -119,13 +129,29 @@ class _FindIDPageState extends State<FindIDPage> {
                   }
                 }
               },
-              child: Text("변경"),
+              child: Text(
+                "변경",
+                style: TextStyle(
+                  fontFamily: 'Pretendard-SemiBold',
+                  fontSize: 15,
+                  color: Color(0xFF3A281F),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text("취소"),
+              child: Text(
+                "취소",
+                style: TextStyle(
+                  fontFamily: 'Pretendard-SemiBold',
+                  fontSize: 15,
+                  color: Color(0xFF3A281F),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         );
@@ -138,8 +164,14 @@ class _FindIDPageState extends State<FindIDPage> {
     final searchId = Provider.of<SearchId>(context);
     final email = searchId.find?.email;
     return Scaffold(
+      backgroundColor: Color(0xFFFFFDEF),
       appBar: AppBar(
-        title: Text('아이디 찾기'),
+        automaticallyImplyLeading: false,
+        backgroundColor: Color(0xFFFFFDEF),
+        title: Container(
+          margin: EdgeInsets.only(top: 60, bottom: 50),
+          child: Image.asset('assets/img/wooki_logo.png'),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -148,13 +180,12 @@ class _FindIDPageState extends State<FindIDPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Text(
-                '아이디 찾기 성공',
-                style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 20.0),
-              Text(
                 '아이디: $email',
-                style: TextStyle(fontSize: 18.0),
+                style: TextStyle(
+                  fontFamily: 'Pretendard-SemiBold',
+                  fontSize: 18.0,
+                  color: Color(0xFF3A281F),
+                ),
               ),
               SizedBox(height: 20.0),
               Row(
@@ -162,17 +193,51 @@ class _FindIDPageState extends State<FindIDPage> {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      // 로그인 버튼을 눌렀을 때의 동작 추가
-                      // 여기서는 해당 동작을 추가하지 않았습니다.
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LoginApp(),
+                        ),
+                      );
                     },
-                    child: Text('로그인'),
+                    child: Text(
+                      '로그인',
+                      style: TextStyle(
+                        fontFamily: 'Pretendard-SemiBold',
+                        fontSize: 15,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF6D605A),
+                      minimumSize: Size(100, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    ),
                   ),
                   SizedBox(width: 10),
                   ElevatedButton(
                     onPressed: () {
                       _showChangeDialog(context, email!);
                     },
-                    child: Text('비밀번호 찾기'),
+                    child: Text(
+                      '비밀번호 찾기',
+                      style: TextStyle(
+                        fontFamily: 'Pretendard-SemiBold',
+                        fontSize: 15,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF6D605A),
+                      minimumSize: Size(100, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    ),
                   ),
                 ],
               ),
