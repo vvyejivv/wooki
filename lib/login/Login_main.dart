@@ -17,6 +17,7 @@ import 'package:wooki/Join/Join1.dart';
 import 'package:wooki/find/find_id.dart';
 import 'package:wooki/find/search_id.dart';
 import 'package:provider/provider.dart';
+import 'package:wooki/Join/JoinEditDelete.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

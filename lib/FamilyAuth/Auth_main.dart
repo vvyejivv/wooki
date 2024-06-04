@@ -358,7 +358,8 @@ class _EmailAuthState extends State<EmailAuth> {
     );
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => MapScreen(userId: _myEmailController.text)), // 이메일을 넘기도록 수정
+      MaterialPageRoute(
+          builder: (context) => MapScreen(userId: _myEmailController.text)), // 이메일을 넘기도록 수정
     );
   }
 
@@ -370,6 +371,90 @@ class _EmailAuthState extends State<EmailAuth> {
       Iterable.generate(12, (_) => chars.codeUnitAt(random.nextInt(chars.length))),
     );
   }
+
+  void _showCreateRoomDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.8,
+            padding: EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Color.fromARGB(255, 255, 253, 239),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start, // 왼쪽 정렬
+              children: [
+                Text(
+                  '새로운 방 생성',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                  textAlign: TextAlign.left,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  '확인 키를 누르시면 가족간의 새로운 방이 만들어집니다.',
+                  style: TextStyle(fontSize: 13),
+                  textAlign: TextAlign.left,
+                ),
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end, // 오른쪽 정렬
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        _createRoom();
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: Color(0xFFFFE458),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      ),
+                      child: Text(
+                        '확인',
+                        style: TextStyle(
+                          color: Color(0xFF3A281F),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: Color(0xFF6D605A),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      ),
+                      child: Text(
+                        '취소',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -396,21 +481,33 @@ class _EmailAuthState extends State<EmailAuth> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(
-                    child: TextField(
-                      enabled: false,
-                      controller: _myEmailController,
-                      decoration: InputDecoration(
-                          filled: true, // 이 속성을 추가하여 배경색을 적용합니다.
-                          fillColor: Color(0xFFE0E0E0), // 원하는 배경색을 지정합니다.
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.6), // 배경색 지정
+                        borderRadius: BorderRadius.circular(5), // 모서리를 둥글게 설정
+                      ),
+                      child: TextField(
+                        enabled: false,
+                        controller: _myEmailController,
+                        style: TextStyle(fontSize: 14),
+                        decoration: InputDecoration(
                           hintStyle: TextStyle(
                             fontFamily: 'Pretendard-Regular',
                             fontSize: 14,
                             color: Colors.black,
                           ),
-                          border: InputBorder.none),
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide.none, // 테두리 제거
+                            borderRadius: BorderRadius.circular(5), // 모서리를 둥글게 설정
+                          ),
+                          filled: true, // 이 속성을 추가하여 배경색을 적용합니다.
+                          fillColor: Colors.transparent, // 이미 Container에서 배경색을 설정했으므로 투명으로 설정
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -424,20 +521,25 @@ class _EmailAuthState extends State<EmailAuth> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              SizedBox(height: 10),
               TextField(
                 controller: _otherEmailController,
                 decoration: InputDecoration(
-                    filled: true,
-                    // 이 속성을 추가하여 배경색을 적용합니다.
-                    fillColor: Colors.white,
-                    // 원하는 배경색을 지정합니다.
-                    hintText: '상대방의 이메일 또는 전화번호를 입력하세요',
-                    hintStyle: TextStyle(
-                      fontFamily: 'Pretendard-Regular',
-                      fontSize: 14,
-                      color: Color(0xFF6D605A),
-                    ),
-                    border: InputBorder.none),
+                  filled: true,
+                  // 이 속성을 추가하여 배경색을 적용합니다.
+                  fillColor: Colors.white,
+                  // 원하는 배경색을 지정합니다.
+                  hintText: '상대방의 이메일 또는 전화번호를 입력하세요',
+                  hintStyle: TextStyle(
+                    fontFamily: 'Pretendard-Regular',
+                    fontSize: 14,
+                    color: Color(0xFF6D605A),
+                  ),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide.none, // 테두리 제거
+                    borderRadius: BorderRadius.circular(5), // 모서리를 둥글게 설정
+                  ),
+                ),
               ),
               SizedBox(height: 20),
               ElevatedButton(
@@ -473,17 +575,21 @@ class _EmailAuthState extends State<EmailAuth> {
                 TextField(
                   controller: _verificationCodeController,
                   decoration: InputDecoration(
-                      filled: true,
-                      // 이 속성을 추가하여 배경색을 적용합니다.
-                      fillColor: Colors.white,
-                      // 원하는 배경색을 지정합니다.
-                      hintText: '인증번호를 입력하세요',
-                      hintStyle: TextStyle(
-                        fontFamily: 'Pretendard-Regular',
-                        fontSize: 14,
-                        color: Color(0xFF6D605A),
-                      ),
-                      border: InputBorder.none),
+                    filled: true,
+                    // 이 속성을 추가하여 배경색을 적용합니다.
+                    fillColor: Colors.white,
+                    // 원하는 배경색을 지정합니다.
+                    hintText: '인증번호를 입력하세요',
+                    hintStyle: TextStyle(
+                      fontFamily: 'Pretendard-Regular',
+                      fontSize: 14,
+                      color: Color(0xFF6D605A),
+                    ),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide.none, // 테두리 제거
+                      borderRadius: BorderRadius.circular(5), // 모서리를 둥글게 설정
+                    ),
+                  ),
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
@@ -506,17 +612,34 @@ class _EmailAuthState extends State<EmailAuth> {
                   ),
                 ),
               ],
+              SizedBox(height: 40),
+              Text(
+                '새로운 방 생성하기',
+                style: TextStyle(
+                  fontFamily: 'Pretendard-Regular',
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 10),
               ElevatedButton(
-                onPressed: _createRoom,
+                onPressed: _showCreateRoomDialog,
                 child: Text(
-                  '방 만들기',
+                  '생성하기',
                   style: TextStyle(
                       fontFamily: 'Pretendard-SemiBold',
                       fontSize: 15,
-                      color: Color(0xFF3A281F),
+                      color: Colors.white,
                       fontWeight: FontWeight.bold),
                 ),
-              )
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF6D605A),
+                  minimumSize: Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
