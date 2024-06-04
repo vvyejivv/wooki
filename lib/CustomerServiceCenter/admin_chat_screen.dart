@@ -70,6 +70,12 @@ class _AdminChatScreenState extends State<AdminChatScreen> {
           textAlign: TextAlign.center,
         ), // 앱바 제목 설정
         centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back), // 뒤로가기 아이콘
+          onPressed: () {
+            Navigator.pop(context); // 뒤로가기 기능 수행
+          },
+        ),
       ),
       body: adminEmail == null
           ? Center(child: CircularProgressIndicator()) // 관리자 이메일이 로드될 때까지 로딩 표시

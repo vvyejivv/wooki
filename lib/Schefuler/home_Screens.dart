@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:wooki/main.dart';
-import 'package:wooki/Schefuler/main_calander.dart';
-import 'package:wooki/Schefuler/add_SchedulScreen.dart';
-import 'package:wooki/Schefuler/edit_SchedulScreen.dart';
-import 'package:wooki/Schefuler/get_Schedule.dart';
-import 'package:wooki/Schefuler/today_banner.dart';
-import 'package:wooki/Schefuler/delete_SchedulScreen.dart'; // deleteSchedule 함수가 있는 파일 경로
+import 'main_calander.dart';
+import 'add_SchedulScreen.dart';
+import 'edit_SchedulScreen.dart';
+import 'get_Schedule.dart';
+import 'today_banner.dart';
+import 'delete_SchedulScreen.dart'; // deleteSchedule 함수가 있는 파일 경로
+import '../map/MapMain.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(DateTime) updateScheduleCount;
@@ -68,17 +68,24 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Color(0xFFFFFDEF),
+        title: Center(
+          child: Text('캘린더'),
+        ),
         leading: IconButton(
-            onPressed: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => MainPage(),)
-              );
-            },
-            icon:const Icon(
-              Icons.arrow_back_ios_new_rounded,
-              color: Colors.black,
-            ),
+          onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MapScreen(
+                    userId: '',
+                  ),
+                ));
+          },
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.black,
+          ),
         ),
       ),
       body: SafeArea(
@@ -205,7 +212,8 @@ class _HomeScreenState extends State<HomeScreen> {
             MaterialPageRoute(
               builder: (context) => AddScheduleScreen(
                 selectedDate: selectedDate,
-                updateScheduleCount: updateScheduleCount, // updateScheduleCount 메서드 전달
+                updateScheduleCount:
+                    updateScheduleCount, // updateScheduleCount 메서드 전달
               ),
             ),
           );
