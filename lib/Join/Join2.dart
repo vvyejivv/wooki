@@ -362,19 +362,19 @@ class _JoinScreenState extends State<JoinScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: Color(0xFFFFDB1C), // 테두리 색상
+                        color: Color(0xffA89891), // 테두리 색상
                         width: 3.0, // 테두리 두께
                       ),
                     ),
                     child: CircleAvatar(
                       radius: 10,
-                      backgroundColor: Colors.transparent, // 배경 투명
+                      backgroundColor: Colors.white.withOpacity(0.7),
                       child: _imageFile == null
                           ? Text(
-                        '프로필 등록하기',
+                        '기본 이미지',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Color(0xff4E3E36),
+                          color: Color(0xff6D605A),
                           fontWeight: FontWeight.bold,
                         ),
                       )
@@ -424,13 +424,14 @@ class _JoinScreenState extends State<JoinScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFFFFE458),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(5),
                         )
                       ),
                       child: Text(
                         '중복 확인',
                         style: TextStyle(
-                          color: Colors.black,
+                          color: Color(0xFF3A281F),
+                          fontSize: 13,
                           fontFamily: 'Pretendard',
                           fontWeight: FontWeight.w500,
                         ),
@@ -578,13 +579,14 @@ class _JoinScreenState extends State<JoinScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFFFFE458),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(5),
                         ),
                       ),
                       child: Text(
                         '휴대폰 인증',
                         style: TextStyle(
-                          color: Colors.black,
+                          color: Color(0xFF3A281F),
+                          fontSize: 13,
                           fontFamily: 'Pretendard',
                           fontWeight: FontWeight.w500,
                         ),
@@ -661,16 +663,20 @@ class _JoinScreenState extends State<JoinScreen> {
                       child: Text(
                         '가입하기',
                         style: TextStyle(
-                          color: Colors.black,
-                          fontFamily: 'Pretendard',
-                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
+                          color: Color(0xFF3A281F),
+                          fontFamily: 'Pretendard-SemiBold',
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                     SizedBox(height: 5,), // Add space between buttons
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.pop(context);
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => LoginApp())
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF6D605A),
@@ -682,9 +688,10 @@ class _JoinScreenState extends State<JoinScreen> {
                       child: Text(
                         '취소',
                         style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Pretendard',
-                          fontWeight: FontWeight.w500,
+                            fontFamily: 'Pretendard-SemiBold',
+                            fontSize: 15,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold
                         ),
                       ),
                     ),
