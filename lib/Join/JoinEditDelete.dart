@@ -7,6 +7,7 @@ import 'dart:io';
 import '../firebase_options.dart';
 import '../map/MapMain.dart';
 import '../CustomerServiceCenter/main.dart';
+import '../login/Login_main.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,7 +16,7 @@ void main() async {
   );
 
   // SharedPreferences를 사용하여 세션에서 사용자 이메일 가져오기
-  SharedPreferences prefs = await SharedPreferences.getInstance();
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
   String? userEmail = prefs.getString('email'); // 세션에서 사용자 이메일 가져오기
 
   if (userEmail != null) {
@@ -72,21 +73,10 @@ class UserListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 255, 253, 239),
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MapScreen(userId: user['email']),
-              ),
-            );
-          },
-          icon: Icon(Icons.arrow_back),
-        ),
-        backgroundColor: Color.fromARGB(255, 255, 253, 239),
-        title: Text('사용자 목록', style: TextStyle(fontWeight: FontWeight.w600),),
+        backgroundColor: Color(0xFF6D605A),
+        title: Text('사용자 목록', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),),
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(1.0),
           child: Divider(
@@ -99,10 +89,20 @@ class UserListScreen extends StatelessWidget {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => Customer(),
+                  builder: (context) => Customer(),
                 )
             );
-          }, icon: Icon(Icons.help))
+          }, icon: Icon(Icons.help), color: Colors.white,),
+          IconButton(onPressed: () async {
+            final SharedPreferences prefs = await SharedPreferences.getInstance();
+            await prefs.clear();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => LoginApp(),
+              ),
+            );
+          }, icon: Icon(Icons.logout, color: Colors.white,))
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -126,20 +126,36 @@ class UserListScreen extends StatelessWidget {
               final userName = user['name'];
               final userEmail = user['email'];
 
-              return ListTile(
-                title: Text(userName),
-                subtitle: Text(userEmail),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => UserEditScreen(user: user),
+              return Container(
+                margin: EdgeInsets.symmetric(vertical: 5.0),
+                decoration: BoxDecoration(
+                  color: Color(0xFFFFFDEF),
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                      offset: Offset(0, 3),
                     ),
-                  );
-                },
+                  ],
+                ),
+                child: ListTile(
+                  title: Text(userName),
+                  subtitle: Text(userEmail),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserEditScreen(user: user),
+                      ),
+                    );
+                  },
+                ),
               );
             },
           );
+
         },
       ),
     );
@@ -299,18 +315,22 @@ class _UserEditScreenState extends State<UserEditScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context)  {
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 255, 253, 239),
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MapScreen(userId: widget.user['email']),
-              ),
-            );
+          onPressed: () async {
+            final SharedPreferences prefs = await SharedPreferences.getInstance();
+            String? userEmail = prefs.getString('email');
+            if (userEmail != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MapScreen(userId: userEmail),
+                ),
+              );
+            }
           },
           icon: Icon(Icons.arrow_back),
         ),

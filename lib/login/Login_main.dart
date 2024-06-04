@@ -350,10 +350,21 @@ class _UserLoginState extends State<UserLogin> {
         // SharedPreferences 로 처리
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('email', userData['email']);
+        await prefs.setBool('isAdmin', userData['isAdmin']);
+        String? userEmail = prefs.getString('email');
+        DocumentSnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance
+            .collection('USERLIST')
+            .doc(userEmail)
+            .get();
 
         if (userData['familyLinked'] == true) {
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => MapScreen(userId: userData['email'])));
+          if (userData['isAdmin'] == false) {
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => MapScreen(userId: userData['email'])));
+          } else {
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => UserEditApp(user: userDoc, isAdmin: userData['isAdmin'])));
+          }
         } else {
           Navigator.push(
               context, MaterialPageRoute(builder: (context) => FamilyAuth()));
