@@ -2,34 +2,88 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import '../firebase_options.dart';
+import '../map/MapMain.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const UserEditApp());
+
+  // SharedPreferences를 사용하여 세션에서 사용자 이메일 가져오기
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? userEmail = prefs.getString('email'); // 세션에서 사용자 이메일 가져오기
+
+  if (userEmail != null) {
+    DocumentSnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance
+        .collection('USERLIST')
+        .doc(userEmail)
+        .get();
+
+    bool isAdmin = userDoc.data()?['IsAdmin'] ?? false;
+
+    runApp(UserEditApp(user: userDoc, isAdmin: isAdmin));
+  } else {
+    runApp(MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: Text('User email not found in session'),
+        ),
+      ),
+    ));
+  }
 }
 
 class UserEditApp extends StatelessWidget {
-  const UserEditApp({Key? key}) : super(key: key);
+  final DocumentSnapshot user;
+  final bool isAdmin;
+
+  const UserEditApp({required this.user, required this.isAdmin, super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: UserListScreen(),
+      home: HomeScreen(user: user, isAdmin: isAdmin),
     );
   }
 }
 
+class HomeScreen extends StatelessWidget {
+  final DocumentSnapshot user;
+  final bool isAdmin;
+
+  const HomeScreen({required this.user, required this.isAdmin});
+
+  @override
+  Widget build(BuildContext context) {
+    return isAdmin ? UserListScreen(user: user) : UserEditScreen(user: user);
+  }
+}
+
 class UserListScreen extends StatelessWidget {
+  final DocumentSnapshot user;
+
+  UserListScreen({required this.user});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 255, 253, 239),
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MapScreen(userId: user['email']),
+              ),
+            );
+          },
+          icon: Icon(Icons.arrow_back),
+        ),
         backgroundColor: Color.fromARGB(255, 255, 253, 239),
         title: Text('사용자 목록'),
       ),
@@ -75,7 +129,7 @@ class UserListScreen extends StatelessWidget {
 }
 
 class UserEditScreen extends StatefulWidget {
-  final QueryDocumentSnapshot user;
+  final DocumentSnapshot user;
 
   UserEditScreen({required this.user});
 
@@ -149,6 +203,17 @@ class _UserEditScreenState extends State<UserEditScreen> {
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 255, 253, 239),
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MapScreen(userId: widget.user['email']),
+              ),
+            );
+          },
+          icon: Icon(Icons.arrow_back),
+        ),
         backgroundColor: Color.fromARGB(255, 255, 253, 239),
         title: Text('사용자 정보 수정'),
         actions: [

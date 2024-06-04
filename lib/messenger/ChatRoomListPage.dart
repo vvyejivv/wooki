@@ -270,7 +270,7 @@ class ChatRoomListPage extends StatelessWidget {
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('취소'),
             ),
-            ElevatedButton(
+            TextButton(
               onPressed: () {
                 FirebaseFirestore.instance
                     .collection('CHATROOMS')
@@ -318,7 +318,7 @@ class ChatRoomListPage extends StatelessWidget {
 }
 
 class _CreateChatRoomDialog extends StatefulWidget {
-  const _CreateChatRoomDialog({required this.userId, required this.users, super.key});
+  const _CreateChatRoomDialog({required this.userId, required this.users});
   final String userId;
   final List<QueryDocumentSnapshot> users;
 
@@ -351,10 +351,19 @@ class __CreateChatRoomDialogState extends State<_CreateChatRoomDialog> {
           children: widget.users.map((user) {
             final userData = user.data() as Map<String, dynamic>;
             final userEmail = userData['email'];
-            final userName =
-            userData.containsKey('name') ? userData['name'] : 'Unknown';
+            final userName = userData.containsKey('name') ? userData['name'] : 'Unknown';
+            final userImagePath = userData['imagePath'] as String?;
             return CheckboxListTile(
-              title: Text(userName),
+              title: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundImage: userImagePath != null ? NetworkImage(userImagePath) : null,
+                    child: userImagePath == null ? Icon(Icons.person) : null,
+                  ),
+                  SizedBox(width: 8),
+                  Text(userName),
+                ],
+              ),
               value: _selectedUserIds.contains(userEmail),
               onChanged: (bool? value) {
                 setState(() {
@@ -374,16 +383,17 @@ class __CreateChatRoomDialogState extends State<_CreateChatRoomDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('취소'),
+          child: const Text('취소', style: TextStyle(color: Color(0xff6D605A))),
         ),
-        ElevatedButton(
+        TextButton(
           onPressed: () => _createChatRoom(context),
-          child: const Text('생성'),
+          child: const Text('생성', style: TextStyle(color: Color(0xff6D605A))),
         ),
       ],
       backgroundColor: Color(0xffECEAE9),
     );
   }
+
 
   void _createChatRoom(BuildContext context) async {
     if (_selectedUserIds.isNotEmpty) {
@@ -402,12 +412,13 @@ class __CreateChatRoomDialogState extends State<_CreateChatRoomDialog> {
       }
 
       // 사용자의 familyKey 가져오기
-      final familyKey = userDoc.docs.first.data()['key'];
+      final userData = userDoc.docs.first.data();
+      final familyKey = userData['key'];
+      final userName = userData['name'];
 
       final chatRoomId = FirebaseFirestore.instance.collection('CHATROOMS').doc().id;
       final userList = [widget.userId, ..._selectedUserIds].where((id) => id != null).toList();
-      final roomName = userList
-          .map((id) => _userNames[id] ?? '')
+      final roomName = [userName, ...userList.map((id) => _userNames[id] ?? '')]
           .where((name) => name.isNotEmpty)
           .join(', ');
 
@@ -445,6 +456,7 @@ class __CreateChatRoomDialogState extends State<_CreateChatRoomDialog> {
       }
     }
   }
+
 
 
 }
