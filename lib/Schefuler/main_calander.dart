@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:intl/date_symbol_data_local.dart';
-import 'package:intl/intl.dart';
 
 class MainCalendar extends StatelessWidget {
   final void Function(DateTime, DateTime) onDaySelected; // 날짜 선택 시 실행할 콜백 함수

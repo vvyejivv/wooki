@@ -1,8 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'user_chat_screen.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ToHomeScreen extends StatefulWidget {
   const ToHomeScreen({Key? key}) : super(key: key);
@@ -98,6 +96,7 @@ class _HomeScreenState extends State<ToHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        //backgroundColor: Color(0xFFFFFDEF),
         title: const Text(
           '홈화면',
           textAlign: TextAlign.center,
@@ -107,11 +106,13 @@ class _HomeScreenState extends State<ToHomeScreen> {
       body: Column(
         children: [
           // 검색 바
-          Padding(
+          Container(
+            color: Color(0xFFFFFDEF),
             padding: const EdgeInsets.all(8.0),
             child: Center(
               child: Container(
                 width: 500,
+                color: Colors.white,
                 child: TextField(
                   onChanged: filterList, // 검색어 변경 시 필터링 함수 호출
                   decoration: InputDecoration(
@@ -126,22 +127,26 @@ class _HomeScreenState extends State<ToHomeScreen> {
           ),
           SizedBox(
             height: 10,
+            child: Container(color: Color(0xFFFFFDEF),),
           ), // 위젯 간 간격 조절
           // 기능 버튼들
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: featureButtons.map((button) {
-                return _buildFeatureButton(
-                  icon: button.icon,
-                  label: button.label,
-                  onPressed: () => button.onPressed(context),
-                );
-              }).toList(),
+            child: Container(
+              color: Color(0xFFFFFDEF), // 배경색 지정
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: featureButtons.map((button) {
+                  return _buildFeatureButton(
+                    icon: button.icon,
+                    label: button.label,
+                    onPressed: () => button.onPressed(context),
+                  );
+                }).toList(),
+              ),
             ),
           ),
-          SizedBox(height: 10),
+          SizedBox(height: 10,child: Container(color: Color(0xFFFFFDEF),),),
           // 피싱/스미싱/사칭 사기 주의 메시지
           Container(
             padding: EdgeInsets.all(16),
@@ -172,7 +177,7 @@ class _HomeScreenState extends State<ToHomeScreen> {
               ],
             ),
           ),
-          SizedBox(height: 10),
+          SizedBox(height: 10,child: Container(color: Color(0xFFFFFDEF),),),
           // 그 외 문의 빠르게 해결하세요 메시지
           GestureDetector(
             onTap: () {
@@ -189,7 +194,7 @@ class _HomeScreenState extends State<ToHomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.question_answer, color: Colors.white),
-                  SizedBox(width: 8),
+                  SizedBox(width: 8,child: Container(color: Color(0xFFFFFDEF),),),
                   Text(
                     '그 외 문의를 빠르게 해결하세요',
                     style: TextStyle(
@@ -202,7 +207,7 @@ class _HomeScreenState extends State<ToHomeScreen> {
               ),
             ),
           ),
-          SizedBox(height: 10),
+          SizedBox(height: 10,child: Container(color: Color(0xFFFFFDEF),),),
           // 필터링된 항목 리스트 표시
           Expanded(
             child: ListView.builder(
@@ -299,6 +304,7 @@ class LatestNewsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFFFFDEF),
       appBar: AppBar(title: Text('최신 소식')),
       body: Center(child: Text('최신 소식 화면')),
     );
@@ -309,6 +315,7 @@ class CustomerReviewsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFFFFDEF),
       appBar: AppBar(title: Text('고객 리뷰')),
       body: Center(child: Text('고객 리뷰 화면')),
     );
@@ -319,6 +326,7 @@ class CustomerSupportScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFFFFDEF),
       appBar: AppBar(title: Text('고객 지원')),
       body: Center(child: Text('고객 지원 화면')),
     );
@@ -329,6 +337,7 @@ class RecentActivitiesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFFFFDEF),
       appBar: AppBar(title: Text('최근 활동')),
       body: Center(child: Text('최근 활동 화면')),
     );

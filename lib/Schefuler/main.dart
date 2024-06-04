@@ -2,7 +2,7 @@ import 'package:firebase_core/firebase_core.dart'; // Firebase 초기화를 위�
 import 'package:flutter/material.dart'; // Flutter UI 구성 요소를 사용하기 위한 패키지
 import 'package:intl/date_symbol_data_local.dart'; // 날짜 형식 설정을 위한 패키지
 import '../firebase_options.dart'; // Firebase 프로젝트 설정을 위한 옵션 파일
-import 'package:wooki/Schefuler/home_Screens.dart'; // 홈 화면 위젯 파일 임포트
+import 'home_Screens.dart'; // 홈 화면 위젯 파일 임포트
 
 void main() async {
   // Flutter 앱이 시작될 때 세션을 초기화합니다.
@@ -25,7 +25,9 @@ class Schefuler extends StatelessWidget {
     return MaterialApp(
       title: '일정 관리', // 앱의 타이틀을 설정합니다.
       theme: ThemeData(), // 앱의 테마를 설정합니다.
-      home: HomeScreen(updateScheduleCount: (DateTime) {}), // 앱이 실행될 때 보여줄 홈 화면을 HomeScreen 위젯으로 설정합니다.
+      home: HomeScreen(
+          updateScheduleCount:
+              (DateTime) {}), // 앱이 실행될 때 보여줄 홈 화면을 HomeScreen 위젯으로 설정합니다.
     );
   }
 }

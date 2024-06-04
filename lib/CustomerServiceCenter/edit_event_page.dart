@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class EditEventPage extends StatelessWidget {
   final DocumentSnapshot event; // 수정할 이벤트 정보

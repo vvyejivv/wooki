@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:wooki/CustomerServiceCenter/user_chat_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'admin_chat_screen.dart';
@@ -7,6 +8,7 @@ import 'asked_questions.dart';
 import 'event_page.dart';
 import 'firestore_service.dart';
 import 'home_screen.dart';
+import '../map/MapMain.dart';
 
 class MainScreens extends StatefulWidget {
   const MainScreens({Key? key}) : super(key: key);
@@ -37,7 +39,7 @@ class _MainScreensState extends State<MainScreens>
     String? userEmail = prefs.getString('email'); // 이메일 불러오기
     if (userEmail != null) {
       bool adminStatus =
-          await firestoreService.isAdminByEmail(userEmail); // 관리자 여부 확인
+      await firestoreService.isAdminByEmail(userEmail); // 관리자 여부 확인
       setState(() {
         email = userEmail; // 사용자 이메일 설정
         isAdmin = adminStatus; // 관리자 여부 설정
@@ -55,12 +57,22 @@ class _MainScreensState extends State<MainScreens>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('고객센터'), // 앱 바 타이틀
+        title: Center(child: const Text('고객센터')), // 앱 바 타이틀을 가운데로 정렬
+        backgroundColor: Color(0xFFFFFDEF),
         leading: IconButton(
           icon:
-              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
+          const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
           // 뒤로 가기 아이콘
-          onPressed: () => Navigator.of(context).pop(), // 뒤로 가기 버튼 클릭 시 처리
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MapScreen(
+                  userId: '',
+                ),
+              ),
+            );
+          },
         ),
         bottom: TabBar(
           controller: _tabController,

@@ -85,7 +85,7 @@ class _AnnouncementState extends State<Announcement> {
                           ),
                           subtitle: Text(truncatedContent),
                           trailing:
-                          const Icon(Icons.arrow_forward_ios, size: 16),
+                              const Icon(Icons.arrow_forward_ios, size: 16),
                           onTap: () {
                             Navigator.push(
                               context,
@@ -109,10 +109,10 @@ class _AnnouncementState extends State<Announcement> {
       ),
       floatingActionButton: isAdmin // 관리자인 경우에만 추가 버튼 표시
           ? FloatingActionButton(
-        onPressed: _showAddAnnouncementDialog,
-        child: Icon(Icons.add),
-        backgroundColor: Colors.blueAccent,
-      )
+              onPressed: _showAddAnnouncementDialog,
+              child: Icon(Icons.add),
+              backgroundColor: Colors.blueAccent,
+            )
           : null,
     );
   }
