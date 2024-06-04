@@ -86,6 +86,13 @@ class UserListScreen extends StatelessWidget {
         ),
         backgroundColor: Color.fromARGB(255, 255, 253, 239),
         title: Text('사용자 목록'),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0),
+          child: Divider(
+            height: 1.0,
+            color: Colors.grey,
+          ),
+        ),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('USERLIST').snapshots(),
@@ -139,16 +146,15 @@ class UserEditScreen extends StatefulWidget {
 
 class _UserEditScreenState extends State<UserEditScreen> {
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _passwordConfirmController = TextEditingController();
   late String _imageURL;
 
   @override
   void initState() {
     super.initState();
     _nameController.text = widget.user['name'];
-    _emailController.text = widget.user['email'];
     _phoneController.text = widget.user['phone'];
     _passwordController.text = widget.user['pwd'];
     _imageURL = widget.user['imagePath'];
@@ -165,10 +171,16 @@ class _UserEditScreenState extends State<UserEditScreen> {
   }
 
   void _updateUser() async {
+    if (_passwordController.text != _passwordConfirmController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('비밀번호가 일치하지 않습니다.')),
+      );
+      return;
+    }
+
     try {
       await FirebaseFirestore.instance.collection('USERLIST').doc(widget.user.id).update({
         'name': _nameController.text,
-        'email': _emailController.text,
         'phone': _phoneController.text,
         'pwd': _passwordController.text,
         'imagePath': _imageURL,
@@ -185,17 +197,93 @@ class _UserEditScreenState extends State<UserEditScreen> {
   }
 
   void _deleteUser() async {
-    try {
-      await FirebaseFirestore.instance.collection('USERLIST').doc(widget.user.id).delete();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('사용자가 삭제되었습니다.')),
-      );
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('삭제 중 오류가 발생했습니다: $e')),
-      );
-    }
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: 'Barrier',
+      transitionDuration: Duration(milliseconds: 200),
+      pageBuilder: (_, __, ___) {
+        final TextEditingController _emailController = TextEditingController();
+        return Center(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.8,
+            padding: EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Color.fromARGB(255, 255, 253, 239),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '정말 탈퇴하시겠습니까?',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(height: 10),
+                  Text('현재 유저의 이메일을 입력하세요:'),
+                  TextField(
+                    controller: _emailController,
+                    decoration: InputDecoration(
+                      labelText: '이메일',
+                      border: UnderlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (_emailController.text == widget.user['email']) {
+                            try {
+                              await FirebaseFirestore.instance.collection('USERLIST').doc(widget.user.id).delete();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('사용자가 탈퇴되었습니다.')),
+                              );
+                              Navigator.pop(context); // Close the dialog
+                              Navigator.pop(context); // Close the screen
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('탈퇴 중 오류가 발생했습니다: $e')),
+                              );
+                            }
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('이메일이 일치하지 않습니다.')),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFFFFE458),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text('예', style: TextStyle(color: Colors.black),),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context, rootNavigator: true).pop(); // Close the dialog
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF6D605A),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text('아니오', style: TextStyle(color: Colors.white),),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -215,7 +303,14 @@ class _UserEditScreenState extends State<UserEditScreen> {
           icon: Icon(Icons.arrow_back),
         ),
         backgroundColor: Color.fromARGB(255, 255, 253, 239),
-        title: Text('사용자 정보 수정'),
+        title: Text('사용자 정보 수정', style: TextStyle(fontWeight: FontWeight.w600),),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0),
+          child: Divider(
+            height: 1.0,
+            color: Colors.grey,
+          ),
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.delete),
@@ -255,15 +350,7 @@ class _UserEditScreenState extends State<UserEditScreen> {
                 controller: _nameController,
                 decoration: InputDecoration(
                   labelText: '이름',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 20),
-              TextField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: '이메일',
-                  border: OutlineInputBorder(),
+                  border: UnderlineInputBorder(),
                 ),
               ),
               SizedBox(height: 20),
@@ -271,7 +358,7 @@ class _UserEditScreenState extends State<UserEditScreen> {
                 controller: _phoneController,
                 decoration: InputDecoration(
                   labelText: '전화번호',
-                  border: OutlineInputBorder(),
+                  border: UnderlineInputBorder(),
                 ),
               ),
               SizedBox(height: 20),
@@ -279,25 +366,46 @@ class _UserEditScreenState extends State<UserEditScreen> {
                 controller: _passwordController,
                 decoration: InputDecoration(
                   labelText: '비밀번호',
-                  border: OutlineInputBorder(),
+                  border: UnderlineInputBorder(),
                 ),
                 obscureText: true,
               ),
               SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _updateUser,
-                child: Text('업데이트'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color.fromRGBO(255, 219, 28, 1),
+              TextField(
+                controller: _passwordConfirmController,
+                decoration: InputDecoration(
+                  labelText: '비밀번호 확인',
+                  border: UnderlineInputBorder(),
                 ),
+                obscureText: true,
               ),
-              SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: _deleteUser,
-                child: Text('삭제'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color.fromRGBO(255, 219, 28, 1),
-                ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: _updateUser,
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size(150, 50), // 버튼 크기 조정
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10), // 둥근 모서리 직사각형
+                      ),
+                      backgroundColor: Color(0xFFFFE458),
+                    ),
+                    child: Text('업데이트', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),),
+                  ),
+                  ElevatedButton(
+                    onPressed: _deleteUser,
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size(150, 50), // 버튼 크기 조정
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10), // 둥근 모서리 직사각형
+                      ),
+                      backgroundColor: Color(0xFF6D605A),
+                    ),
+                    child: Text('탈퇴', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),),
+                  ),
+                ],
               ),
             ],
           ),
