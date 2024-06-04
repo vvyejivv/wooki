@@ -22,7 +22,6 @@ void main() async {
   );
 }
 
-
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -61,7 +60,7 @@ class _FindIDPageState extends State<FindIDPage> {
           backgroundColor: Color(0xFFFFFDEF),
           title: Text("오류"),
           content: Text(
-              "인증번호가 틀렸습니다.",
+            "인증번호가 틀렸습니다.",
             style: TextStyle(
               fontFamily: 'Pretendard-SemiBold',
               fontSize: 15,
@@ -87,14 +86,20 @@ class _FindIDPageState extends State<FindIDPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
           backgroundColor: Color(0xFFFFFDEF),
           title: Container(),
-          content: Text("폰번호를 입력하세요.",style: TextStyle(
-            fontFamily: 'Pretendard-SemiBold',
-            fontSize: 15,
-            color: Color(0xFF3A281F),
-            fontWeight: FontWeight.bold,
-          ),),
+          content: Text(
+            "폰번호를 입력하세요.",
+            style: TextStyle(
+              fontFamily: 'Pretendard-SemiBold',
+              fontSize: 15,
+              color: Color(0xFF3A281F),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           actions: [
             TextButton(
               onPressed: () {
@@ -115,12 +120,15 @@ class _FindIDPageState extends State<FindIDPage> {
         return AlertDialog(
           backgroundColor: Color(0xFFFFFDEF),
           title: Container(),
-          content: Text("가입한 번호가 없습니다.",style: TextStyle(
-            fontFamily: 'Pretendard-SemiBold',
-            fontSize: 15,
-            color: Color(0xFF3A281F),
-            fontWeight: FontWeight.bold,
-          ),),
+          content: Text(
+            "가입한 번호가 없습니다.",
+            style: TextStyle(
+              fontFamily: 'Pretendard-SemiBold',
+              fontSize: 15,
+              color: Color(0xFF3A281F),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           actions: [
             TextButton(
               onPressed: () {
@@ -141,17 +149,41 @@ class _FindIDPageState extends State<FindIDPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Color(0xFFFFFDEF),
-          title: Text("인증번호",style: TextStyle(
-            fontFamily: 'Pretendard-SemiBold',
-            fontSize: 15,
-            color: Color(0xFF3A281F),
-            fontWeight: FontWeight.bold,
-          ),),
+          title: Text(
+            "인증번호",
+            style: TextStyle(
+              fontFamily: 'Pretendard-SemiBold',
+              fontSize: 15,
+              color: Color(0xFF3A281F),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           content: TextField(
             controller: codeController,
             decoration: InputDecoration(
-              labelText: '인증번호 입력',
-              border: OutlineInputBorder(),
+              hintText: "인증번호를 입력해주세요.",
+              hintStyle: TextStyle(
+                fontSize: 13,
+                fontFamily: 'Pretendard',
+                fontWeight: FontWeight.w400,
+                color: Colors.grey,
+              ),
+              labelStyle: TextStyle(
+                fontSize: 15,
+                fontFamily: 'Pretendard',
+                fontWeight: FontWeight.w500,
+                color: Color(0xff4E3E36),
+              ),
+              border: UnderlineInputBorder(
+                borderSide: BorderSide(
+                  color: Color(0xff3A281F),
+                ),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(
+                  color: Color(0xff3A281F),
+                ),
+              ),
             ),
             keyboardType: TextInputType.number,
           ),
@@ -168,13 +200,37 @@ class _FindIDPageState extends State<FindIDPage> {
                   _showErrorDialog(context);
                 }
               },
-              child: Text("확인"),
+              style: TextButton.styleFrom(
+                backgroundColor: Color(0xFFFFE458),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+              child: Text(
+                '확인',
+                style: TextStyle(
+                  color: Color(0xFF3A281F),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text("취소"),
+              style: TextButton.styleFrom(
+                backgroundColor: Color(0xFF6D605A),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+              child: Text(
+                '취소',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                ),
+              ),
             )
           ],
         );
@@ -233,12 +289,32 @@ class _FindIDPageState extends State<FindIDPage> {
             TextField(
               controller: phoneController,
               decoration: InputDecoration(
-                labelText: '폰번호를 입력해주세요.',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                labelText: "전화번호",
+                hintText: "'-' 구분없이 입력해주세요.",
+                hintStyle: TextStyle(
+                  fontSize: 13,
+                  fontFamily: 'Pretendard',
+                  fontWeight: FontWeight.w400,
+                  color: Colors.grey,
+                ),
+                labelStyle: TextStyle(
+                  fontSize: 15,
+                  fontFamily: 'Pretendard',
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xff4E3E36),
+                ),
+                border: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Color(0xff3A281F),
+                  ),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Color(0xff3A281F),
+                  ),
                 ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: Color(0xFFFFFDEF),
               ),
               keyboardType: TextInputType.phone,
               enabled: !_isVerified,
@@ -267,12 +343,12 @@ class _FindIDPageState extends State<FindIDPage> {
                 }
               },
               child: Text(
-                  _isVerified ? '다음' : '인증번호 전송',
-                  style: TextStyle(
-                  fontFamily: 'Pretendard-SemiBold',
-                  fontSize: 15,
-                  color: Color(0xFF3A281F),
-                  fontWeight: FontWeight.bold),
+                _isVerified ? '다음' : '인증번호 전송',
+                style: TextStyle(
+                    fontFamily: 'Pretendard-SemiBold',
+                    fontSize: 15,
+                    color: Color(0xFF3A281F),
+                    fontWeight: FontWeight.bold),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFFFFE458),
@@ -286,13 +362,11 @@ class _FindIDPageState extends State<FindIDPage> {
             SizedBox(height: 10.0),
             ElevatedButton(
               onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => LoginApp())
-                );
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => LoginApp()));
               },
               child: Text(
-                  '로그인',
+                '로그인',
                 style: TextStyle(
                     fontFamily: 'Pretendard-SemiBold',
                     fontSize: 15,
@@ -307,13 +381,11 @@ class _FindIDPageState extends State<FindIDPage> {
                 ),
               ),
             ),
-            SizedBox(height: 20.0),
+            SizedBox(height: 10.0),
             TextButton(
               onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => JoinEx2())
-                );
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => JoinEx2()));
               },
               child: Text(
                 '회원가입',

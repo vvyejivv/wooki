@@ -74,8 +74,30 @@ class _FindIDPageState extends State<FindIDPage> {
                 TextFormField(
                   controller: pwdController,
                   decoration: InputDecoration(
-                    labelText: '새 비밀번호 입력',
-                    border: OutlineInputBorder(),
+                    hintText: "새 비밀번호 입력",
+                    hintStyle: TextStyle(
+                      fontSize: 13,
+                      fontFamily: 'Pretendard',
+                      fontWeight: FontWeight.w400,
+                      color: Colors.grey,
+                    ),
+                    labelStyle: TextStyle(
+                      fontSize: 15,
+                      fontFamily: 'Pretendard',
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xff4E3E36),
+                    ),
+                    border: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xff3A281F),
+                      ),
+                    ),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xff3A281F),
+                      ),
+                    ),
+
                   ),
                   keyboardType: TextInputType.visiblePassword,
                   obscureText: true,
@@ -93,8 +115,30 @@ class _FindIDPageState extends State<FindIDPage> {
                 TextFormField(
                   controller: pwd2Controller,
                   decoration: InputDecoration(
-                    labelText: '새 비밀번호 확인',
-                    border: OutlineInputBorder(),
+                    hintText: "새 비밀번호 확인",
+                    hintStyle: TextStyle(
+                      fontSize: 13,
+                      fontFamily: 'Pretendard',
+                      fontWeight: FontWeight.w400,
+                      color: Colors.grey,
+                    ),
+                    labelStyle: TextStyle(
+                      fontSize: 15,
+                      fontFamily: 'Pretendard',
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xff4E3E36),
+                    ),
+                    border: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xff3A281F),
+                      ),
+                    ),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xff3A281F),
+                      ),
+                    ),
+
                   ),
                   keyboardType: TextInputType.visiblePassword,
                   obscureText: true,
@@ -129,6 +173,12 @@ class _FindIDPageState extends State<FindIDPage> {
                   }
                 }
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFFFE458),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
               child: Text(
                 "변경",
                 style: TextStyle(
@@ -143,12 +193,18 @@ class _FindIDPageState extends State<FindIDPage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF6D605A),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
               child: Text(
                 "취소",
                 style: TextStyle(
                   fontFamily: 'Pretendard-SemiBold',
                   fontSize: 15,
-                  color: Color(0xFF3A281F),
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -205,12 +261,13 @@ class _FindIDPageState extends State<FindIDPage> {
                       style: TextStyle(
                         fontFamily: 'Pretendard-SemiBold',
                         fontSize: 15,
-                        color: Colors.white,
+                        color: Color(0xFF3A281F),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF6D605A),
+                      backgroundColor: Color(0xFFFFE458),
+                      foregroundColor: Color(0xFF3A281F),
                       minimumSize: Size(100, 50),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(5),
