@@ -224,6 +224,12 @@ class _SnsAddState extends State<SnsAdd> {
 
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text('업로드 되었습니다!')));
+
+    // 업로드 후 SnsApp() 페이지로 이동
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => SnsApp()),
+    );
   }
 
   Future<String> _uploadImage(File image) async {
