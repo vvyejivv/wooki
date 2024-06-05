@@ -69,9 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFFFFFDEF),
-        title: Center(
-          child: Text('캘린더'),
-        ),
+        title: Text('캘린더'),
         leading: IconButton(
           onPressed: () {
             Navigator.push(
