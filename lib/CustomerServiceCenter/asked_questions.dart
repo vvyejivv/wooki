@@ -66,26 +66,43 @@ class _AskedQuestionsState extends State<AskedQuestions> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('자주하는질문', textAlign: TextAlign.center), // 앱 바 타이틀
-        centerTitle: true,
-      ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Center(
-              child: Container(
-                width: 500,
-                child: TextField(
-                  onChanged: (value) => _filterFaqs(value), // 검색어 입력 시 FAQ 필터링
-                  decoration: InputDecoration(
-                    labelText: '검색', // 검색 필드 레이블
-                    hintText: '질문 검색...', // 검색 힌트
-                    prefixIcon: Icon(Icons.search), // 검색 아이콘
-                    border: OutlineInputBorder(
-                      // 텍스트 필드 외각선 스타일
-                      borderRadius: BorderRadius.circular(20),
+          Container(
+            color: Color(0xFFFFFDEF),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(
+                child: Container(
+                  color: Color(0xFFFFFDEF),
+                  child: TextField(
+                    onChanged: (value) => _filterFaqs(value), // 검색어 입력 시 FAQ 필터링
+                    decoration: InputDecoration(
+                      labelText: '검색', // 검색 필드 레이블
+                      labelStyle: TextStyle(
+                        fontSize: 15, // 원하는 글씨 크기
+                        fontFamily: 'Pretendard',
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xff4E3E36), // 텍스트 색상 (필요한 경우)
+                      ),
+                      hintText: '질문 검색...', // 검색 힌트
+                      hintStyle: TextStyle(
+                        fontSize: 13, // 힌트 텍스트 크기
+                        fontFamily: 'Pretendard',
+                        fontWeight: FontWeight.w400,
+                        color: Colors.grey, // 힌트 텍스트 색상
+                      ),
+                      prefixIcon: Icon(Icons.search), // 검색 아이콘
+                      border: UnderlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Color(0xff3A281F), // 밑줄 색상
+                        ),
+                      ),
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Color(0xff3A281F), // 포커스된 밑줄 색상
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -134,8 +151,8 @@ class _AskedQuestionsState extends State<AskedQuestions> {
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
                 color: _selectedCategory == category.id
-                    ? Colors.blue
-                    : Colors.grey, // 선택된 카테고리의 색상 변경
+                    ? Color(0xFFFFE458)
+                    : Color(0xff4E3E36), // 선택된 카테고리의 색상 변경
               ),
             ),
             child: Column(
@@ -144,8 +161,8 @@ class _AskedQuestionsState extends State<AskedQuestions> {
                 Icon(category.icon,
                     size: 20,
                     color: _selectedCategory == category.id
-                        ? Colors.blue
-                        : Colors.grey), // 아이콘 및 색상 변경
+                        ? Color(0xFFFFE458)
+                        : Color(0xff4E3E36)), // 아이콘 및 색상 변경
                 const SizedBox(height: 5),
                 Text(category.label,
                     textAlign: TextAlign.center,
@@ -162,19 +179,38 @@ class _AskedQuestionsState extends State<AskedQuestions> {
     // FAQ 목록 생성
     return ListView.builder(
       itemCount: _filteredFaqs.length,
-      itemBuilder: (context, index) {
-        final faq = _filteredFaqs[index];
-        return Card(
-          margin: const EdgeInsets.all(8.0),
+      itemBuilder: (context, index) {      final faq = _filteredFaqs[index];
+      return Card(
+        color: Color(0xff4E3E36), // Card 배경색
+        margin: const EdgeInsets.all(8.0),
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            dividerColor: Color(0xff4E3E36), // ExpansionTile 선 색상
+          ),
           child: ExpansionTile(
-            title: Text(faq.question), // 질문
+            backgroundColor: Color(0xff4E3E36), // ExpansionTile 배경색
+            title: Text(
+              faq.question,
+              style: TextStyle(
+                color: Colors.white, // 질문 글씨색
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            iconColor: Color(0xff4E3E36), // 아이콘 색상
             children: [
-              Padding(
+              Container(
+                color: Color(0xFFFFFDEF), // 답변 배경색
                 padding: const EdgeInsets.all(16.0),
-                child: Text(faq.answer), // 답변
+                child: Text(
+                  faq.answer,
+                  style: TextStyle(
+                    color: Color(0xff4E3E36), // 답변 글씨색
+                  ),
+                ),
               ),
             ],
           ),
+        ),
         );
       },
     );

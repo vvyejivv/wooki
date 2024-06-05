@@ -95,14 +95,6 @@ class _HomeScreenState extends State<ToHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        //backgroundColor: Color(0xFFFFFDEF),
-        title: const Text(
-          '홈화면',
-          textAlign: TextAlign.center,
-        ),
-        centerTitle: true,
-      ),
       body: Column(
         children: [
           // 검색 바
@@ -111,15 +103,34 @@ class _HomeScreenState extends State<ToHomeScreen> {
             padding: const EdgeInsets.all(8.0),
             child: Center(
               child: Container(
-                width: 500,
-                color: Colors.white,
                 child: TextField(
                   onChanged: filterList, // 검색어 변경 시 필터링 함수 호출
                   decoration: InputDecoration(
                     labelText: '검색',
+                    labelStyle: TextStyle(
+                      fontSize: 15, // 원하는 글씨 크기
+                      fontFamily: 'Pretendard',
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xff4E3E36), // 텍스트 색상 (필요한 경우)
+                    ),
                     hintText: '검색어를 입력하세요',
+                    hintStyle: TextStyle(
+                      fontSize: 13, // 힌트 텍스트 크기
+                      fontFamily: 'Pretendard',
+                      fontWeight: FontWeight.w400,
+                      color: Colors.grey, // 힌트 텍스트 색상
+                    ),
                     prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(),
+                    border: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xff3A281F), // 밑줄 색상
+                      ),
+                    ),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xff3A281F), // 포커스된 밑줄 색상
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -137,10 +148,13 @@ class _HomeScreenState extends State<ToHomeScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: featureButtons.map((button) {
-                  return _buildFeatureButton(
-                    icon: button.icon,
-                    label: button.label,
-                    onPressed: () => button.onPressed(context),
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: _buildFeatureButton(
+                      icon: button.icon,
+                      label: button.label,
+                      onPressed: () => button.onPressed(context),
+                    ),
                   );
                 }).toList(),
               ),
@@ -177,7 +191,7 @@ class _HomeScreenState extends State<ToHomeScreen> {
               ],
             ),
           ),
-          SizedBox(height: 10,child: Container(color: Color(0xFFFFFDEF),),),
+          SizedBox(child: Container(color: Color(0xFFFFFDEF),),),
           // 그 외 문의 빠르게 해결하세요 메시지
           GestureDetector(
             onTap: () {
@@ -189,7 +203,7 @@ class _HomeScreenState extends State<ToHomeScreen> {
             },
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              color: Colors.blueAccent, // 배경색 설정
+              color: Color(0xFF4E3E36), // 배경색 설정
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -242,9 +256,19 @@ class _HomeScreenState extends State<ToHomeScreen> {
                       );
                     }
                   },
-                  child: ListTile(
-                    title: Text(filteredItems[index]),
-                    subtitle: Text(_getSubtitle(filteredItems[index])),
+                  child: Container(
+                    color: Color(0xFFFFFDEF),
+                    child: ListTile(
+                      title: Text(
+                          filteredItems[index],
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                      subtitle: Text(
+                          _getSubtitle(filteredItems[index])),
+                    ),
                   ),
                 );
               },
@@ -263,8 +287,16 @@ class _HomeScreenState extends State<ToHomeScreen> {
   }) {
     return ElevatedButton.icon(
       onPressed: onPressed,
-      icon: Icon(icon),
-      label: Text(label),
+      icon: Icon(icon, color: Colors.white),
+      label: Text(label,style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Color(0xFF3A281F),
+        foregroundColor: Color(0xFF3A281F),
+        minimumSize: Size(80, 50),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+        ),
+      ),
     );
   }
 
@@ -273,13 +305,13 @@ class _HomeScreenState extends State<ToHomeScreen> {
     // Define your logic here to generate subtitles based on the item.
     // This is just a placeholder example:
     if (item.contains('최신 소식')) {
-      return '최신 소식에 대한 부제목';
+      return '우끼와 함께하는 이벤트!';
     } else if (item.contains('고객 리뷰')) {
-      return '고객 리뷰에 대한 부제목';
+      return '우끼를 사용한 리뷰 작성 부탁드립니다.';
     } else if (item.contains('고객 지원')) {
-      return '고객 지원에 대한 부제목';
+      return '고객 지원';
     } else if (item.contains('최근 활동')) {
-      return '최근 활동에 대한 부제목';
+      return '최근 활동';
     } else {
       return ''; // Return an empty string if no specific subtitle is defined.
     }
@@ -316,7 +348,10 @@ class CustomerReviewsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFFFFDEF),
-      appBar: AppBar(title: Text('고객 리뷰')),
+      appBar: AppBar(
+          title: Text('고객 리뷰'),
+          backgroundColor: Color(0xFFFFFDEF)
+      ),
       body: Center(child: Text('고객 리뷰 화면')),
     );
   }
@@ -327,7 +362,10 @@ class CustomerSupportScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFFFFDEF),
-      appBar: AppBar(title: Text('고객 지원')),
+      appBar: AppBar(
+          title: Text('고객 지원'),
+          backgroundColor: Color(0xFFFFFDEF)
+      ),
       body: Center(child: Text('고객 지원 화면')),
     );
   }
@@ -338,7 +376,10 @@ class RecentActivitiesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFFFFDEF),
-      appBar: AppBar(title: Text('최근 활동')),
+      appBar: AppBar(
+          title: Text('최근 활동'),
+          backgroundColor: Color(0xFFFFFDEF)
+      ),
       body: Center(child: Text('최근 활동 화면')),
     );
   }
