@@ -35,10 +35,7 @@ class _AnnouncementState extends State<Announcement> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('공지사항'), // 앱 바 타이틀
-        centerTitle: true,
-      ),
+      backgroundColor: Color(0xFFFFFDEF),
       body: Column(
         children: [
           Expanded(
@@ -68,6 +65,7 @@ class _AnnouncementState extends State<Announcement> {
                           ? '${announcement.content.substring(0, 10)}...' // 공지사항 내용이 너무 길 경우 일부만 표시
                           : announcement.content;
                       return Card(
+                        color: Color(0xFF4E3E36),
                         elevation: 4,
                         margin: const EdgeInsets.all(8),
                         child: ListTile(
@@ -81,9 +79,15 @@ class _AnnouncementState extends State<Announcement> {
                             announcement.title,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
+                              color: Colors.white
                             ),
                           ),
-                          subtitle: Text(truncatedContent),
+                          subtitle: Text(
+                              truncatedContent,
+                              style: TextStyle(
+                                  color: Colors.white
+                              ),
+                          ),
                           trailing:
                               const Icon(Icons.arrow_forward_ios, size: 16),
                           onTap: () {
@@ -126,6 +130,7 @@ class _AnnouncementState extends State<Announcement> {
       context: context,
       builder: (context) {
         return AlertDialog(
+          backgroundColor: Color(0xFFFFFDEF),
           title: const Text('새 공지사항 추가'),
           content: Column(
             mainAxisSize: MainAxisSize.min,

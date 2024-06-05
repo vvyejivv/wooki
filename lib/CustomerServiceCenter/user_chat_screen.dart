@@ -32,14 +32,11 @@ class _UserChatScreenState extends State<UserChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('사용자 채팅'), // 앱바 제목 설정
-      ),
       body: Column(
         children: <Widget>[
           Expanded(
             child: Container(
-              color: Colors.white, // 배경색을 하얀색으로 설정
+              color: Color(0xFFFFFDEF),
               child: StreamBuilder(
                 stream: _firestore
                     .collection('InquireChatRooms')
@@ -91,7 +88,7 @@ class _UserChatScreenState extends State<UserChatScreen> {
           Material(
             borderRadius: BorderRadius.circular(10.0),
             elevation: 5.0,
-            color: isUser ? Colors.blueAccent : Colors.grey[300],
+            color: isUser ? Color(0xff4E3E36) : Colors.grey[300],
             // 사용자 메시지는 파란색, 관리자 메시지는 회색
             child: Container(
               padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
