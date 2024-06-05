@@ -867,10 +867,10 @@ class _PostListPageState extends State<PostListPage> {
             }
           },
         ),
-        backgroundColor: Color(0xff6D605A),
+        backgroundColor: Color(0xFFFFFDEF),
         title: Text(
           '게시글 목록',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+          style: TextStyle(color: Color(0xFF4E3E36), fontWeight: FontWeight.w500),
         ),
         actions: [
           IconButton(

@@ -591,9 +591,9 @@ class _MapScreenState extends State<MapScreen> {
       appBar: AppBar(
         title: Text(
           'Google 지도',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+          style: TextStyle(color: Color(0xFF4E3E36), fontWeight: FontWeight.w500),
         ),
-        backgroundColor: const Color(0xff6D605A),
+        backgroundColor: const Color(0xFFFFFDEF),
         actions: [
           IconButton(
             icon: Icon(
@@ -628,7 +628,7 @@ class _MapScreenState extends State<MapScreen> {
         ],
       ),
       bottomNavigationBar: BottomAppBar(
-        color: Color(0xFF4E3E36),
+        color: Color(0xFFFFFDEF),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -652,7 +652,7 @@ class _MapScreenState extends State<MapScreen> {
                 shape: CircleBorder(),
                 backgroundColor: Colors.transparent,
                 elevation: 5,
-                shadowColor: Colors.grey.withOpacity(0.5),
+                shadowColor: Colors.grey.withOpacity(0.9),
               ),
               onPressed: () {
                 Navigator.push(
@@ -685,7 +685,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Widget _buildBottomNavigationBarItem(IconData icon) {
-    return Icon(icon, color: Colors.white60, size: 30,);
+    return Icon(icon, color: Color(0xFF4E3E36), size: 30,);
   }
 
   @override

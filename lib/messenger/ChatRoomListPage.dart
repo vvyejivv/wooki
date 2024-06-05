@@ -19,19 +19,19 @@ class ChatRoomListPage extends StatelessWidget {
               MaterialPageRoute(builder: (context) => MapScreen(userId: userId)),
             );
           },
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF4E3E36)),
         ),
         title: const Text(
           '채팅방 목록',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+          style: TextStyle(color: Color(0xFF4E3E36), fontWeight: FontWeight.w500),
         ),
         actions: [
           IconButton(
             onPressed: () => _showCreateChatRoomDialog(context),
-            icon: const Icon(Icons.add, color: Colors.white),
+            icon: const Icon(Icons.add, color: Color(0xFF4E3E36)),
           ),
         ],
-        backgroundColor: const Color.fromRGBO(109, 96, 90, 1),
+        backgroundColor: const Color(0xFFFFFDEF),
       ),
       body: Container(
         color: const Color.fromRGBO(255, 253, 239, 1),
