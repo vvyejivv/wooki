@@ -2,7 +2,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:wooki/login/Login_main.dart';
-
+import 'package:provider/provider.dart';
+import 'package:wooki/find/search_id.dart';
 import '../firebase_options.dart';
 
 void main() async {
@@ -10,7 +11,14 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(FirstMainHome());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => SearchId()),
+      ],
+      child: FirstMainHome(),
+    ),
+  );
 }
 
 class FirstMainHome extends StatelessWidget {
