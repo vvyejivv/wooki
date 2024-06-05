@@ -85,10 +85,6 @@ class LogoutWidget extends StatelessWidget {
               onPressed: () => _kakaoLogout(context),
               child: Text("카카오 로그아웃"),
             ),
-            ElevatedButton(
-              onPressed: () => MainPage(),
-              child: Text("메인"),
-            )
           ],
         ),
       ),
