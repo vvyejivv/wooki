@@ -13,6 +13,7 @@ class EventCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // 이벤트 정보를 표시하는 Card 위젯을 반환합니다.
     return Card(
+      color: Color(0xFF4E3E36),
       elevation: 4, // 그림자의 높이를 설정합니다.
       margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16), // 카드의 여백을 설정합니다.
       shape: RoundedRectangleBorder( // 카드의 모서리를 둥글게 만듭니다.
@@ -35,12 +36,12 @@ class EventCard extends StatelessWidget {
             children: [
               Text(
                 event['eventName'], // 이벤트 이름을 표시합니다.
-                style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold), // 텍스트 스타일을 설정합니다.
+                style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold, color: Colors.white), // 텍스트 스타일을 설정합니다.
               ),
               SizedBox(height: 8.0), // 위젯 간 간격을 설정합니다.
               Text(
                 event['description'], // 이벤트 설명을 표시합니다.
-                style: TextStyle(fontSize: 14.0), // 텍스트 스타일을 설정합니다.
+                style: TextStyle(fontSize: 14.0, color: Colors.white), // 텍스트 스타일을 설정합니다.
               ),
             ],
           ),

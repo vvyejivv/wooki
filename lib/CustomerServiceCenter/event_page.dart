@@ -35,13 +35,7 @@ class _EventPageState extends State<EventPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-            '이벤트',
-          textAlign: TextAlign.center,
-        ), // 앱바 제목을 설정합니다.
-        centerTitle: true,
-      ),
+      backgroundColor: Color(0xFFFFFDEF),
       body: StreamBuilder(
         stream: FirebaseFirestore.instance.collection('events').snapshots(), // Firestore의 이벤트 컬렉션을 스트림으로 가져옵니다.
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -73,6 +67,7 @@ class _EventPageState extends State<EventPage> {
           );
         },
         child: Icon(Icons.add), // 플로팅 액션 버튼에 아이콘을 설정합니다.
+        backgroundColor: Color(0xFFFFFDEF),
       )
           : null, // 관리자가 아닌 경우 플로팅 액션 버튼을 표시하지 않습니다.
     );
