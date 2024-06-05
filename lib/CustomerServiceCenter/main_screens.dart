@@ -57,36 +57,45 @@ class _MainScreensState extends State<MainScreens>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Center(child: const Text('고객센터')), // 앱 바 타이틀을 가운데로 정렬
+        title: Text(
+            '고객센터',
+            style: TextStyle(color: Color(0xFF4E3E36), fontWeight: FontWeight.w500)
+        ), // 앱 바 타이틀을 가운데로 정렬
         backgroundColor: Color(0xFFFFFDEF),
         leading: IconButton(
           icon:
-          const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
+          const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF4E3E36)),
           // 뒤로 가기 아이콘
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MapScreen(),
-              ),
-            );
+            if (email != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MapScreen(),
+                ),
+              );
+            } else {
+              // email이 null일 때의 처리 로직
+              ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("이메일 정보가 필요합니다. 로그인을 확인해주세요.")));
+            }
           },
         ),
         bottom: TabBar(
           controller: _tabController,
           // 탭 컨트롤러 설정
-          indicatorColor: Colors.blue,
+          indicatorColor: Color(0xFFFFE458),
           // 선택된 탭 아래 인디케이터 색상
           labelColor: Colors.black,
           // 선택된 탭 라벨 색상
-          unselectedLabelColor: Colors.grey,
+          unselectedLabelColor: Color(0xFF4E3E36),
           // 선택되지 않은 탭 라벨 색상
           tabs: [
-            Tab(icon: Icon(Icons.home), text: '홈'), // 홈 탭
-            Tab(icon: Icon(Icons.help), text: 'FAQ'), // FAQ 탭
-            Tab(icon: Icon(Icons.message), text: '문의내역'), // 문의내역 탭
-            Tab(icon: Icon(Icons.event), text: '이벤트'), // 고객의 소리 탭
-            Tab(icon: Icon(Icons.announcement), text: '공지사항'), // 공지사항 탭
+            Tab(icon: Icon(Icons.home, color: Color(0xFF4E3E36),), text: '홈'), // 홈 탭
+            Tab(icon: Icon(Icons.help, color: Color(0xFF4E3E36)), text: 'FAQ'), // FAQ 탭
+            Tab(icon: Icon(Icons.message, color: Color(0xFF4E3E36)), text: '문의내역'), // 문의내역 탭
+            Tab(icon: Icon(Icons.event, color: Color(0xFF4E3E36)), text: '이벤트'), // 고객의 소리 탭
+            Tab(icon: Icon(Icons.announcement, color: Color(0xFF4E3E36)), text: '공지사항'), // 공지사항 탭
           ],
         ),
       ),
