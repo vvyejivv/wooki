@@ -16,7 +16,7 @@ class ChatRoomListPage extends StatelessWidget {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => MapScreen(userId: userId)),
+              MaterialPageRoute(builder: (context) => MapScreen()),
             );
           },
           icon: const Icon(Icons.arrow_back, color: Color(0xFF4E3E36)),

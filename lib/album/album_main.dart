@@ -861,7 +861,7 @@ class _PostListPageState extends State<PostListPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MapScreen(userId: _currentUserEmail!),
+                  builder: (context) => MapScreen(),
                 ),
               );
             }

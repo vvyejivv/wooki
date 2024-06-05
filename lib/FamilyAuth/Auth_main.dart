@@ -219,7 +219,7 @@ class _EmailAuthState extends State<EmailAuth> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => MapScreen(userId: _myEmailController.text),
+          builder: (context) => MapScreen(),
         ),
       );
     } else {
@@ -359,7 +359,7 @@ class _EmailAuthState extends State<EmailAuth> {
     Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => MapScreen(userId: _myEmailController.text)), // 이메일을 넘기도록 수정
+          builder: (context) => MapScreen()),
     );
   }
 

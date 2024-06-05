@@ -230,7 +230,7 @@ class _SocialLogin extends State<SocialLogin> {
       } else {
         Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => MapScreen(userId: userData['email']))
+            MaterialPageRoute(builder: (context) => MapScreen())
         );
       }
     } else {
@@ -353,7 +353,7 @@ class _UserLoginState extends State<UserLogin> {
 
         if (userData['familyLinked'] == true) {
           Navigator.push(
-              context, MaterialPageRoute(builder: (context) => MapScreen(userId: userData['email'])));
+              context, MaterialPageRoute(builder: (context) => MapScreen()));
         } else {
           Navigator.push(
               context, MaterialPageRoute(builder: (context) => FamilyAuth()));

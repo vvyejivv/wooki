@@ -67,9 +67,7 @@ class _MainScreensState extends State<MainScreens>
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => MapScreen(
-                  userId: '',
-                ),
+                builder: (context) => MapScreen(),
               ),
             );
           },

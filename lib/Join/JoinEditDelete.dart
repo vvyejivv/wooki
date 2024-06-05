@@ -79,7 +79,7 @@ class UserListScreen extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => MapScreen(userId: user['email']),
+                builder: (context) => MapScreen(),
               ),
             );
           },
@@ -308,7 +308,7 @@ class _UserEditScreenState extends State<UserEditScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => MapScreen(userId: widget.user['email']),
+                builder: (context) => MapScreen(),
               ),
             );
           },

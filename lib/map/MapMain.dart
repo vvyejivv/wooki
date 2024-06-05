@@ -23,15 +23,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(MaterialApp(
-    home: MapScreen(userId: 'your_user_id'),
+    home: MapScreen(),
   ));
 }
 
 class MapScreen extends StatefulWidget {
-  final String userId;
-
-  MapScreen({required this.userId});
-
   @override
   _MapScreenState createState() => _MapScreenState();
 }
@@ -45,10 +41,11 @@ class _MapScreenState extends State<MapScreen> {
   Timer? _updateTimer;
   StreamSubscription<Position>? _positionStreamSubscription;
   StreamSubscription<MagnetometerEvent>? _magnetometerSubscription;
+  String? _userId;
   String? _userName;
   String? _userImage;
   double _heading = 0;
-  Set<Marker> _markers = {};
+  final Set<Marker> _markers = {};
 
   @override
   void initState() {
@@ -59,24 +56,27 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _initializeUserData() async {
-    QuerySnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance
-        .collection('USERLIST')
-        .where('email', isEqualTo: widget.userId)
-        .get();
-    if (userDoc.docs.isNotEmpty) {
-      Map<String, dynamic> userData = userDoc.docs.first.data();
-      String userKey = userData['key']; // userKey 값 가져오기
-      setState(() {
-        _userName = userData['name'];
-        _userImage = userData['imagePath'];
-      });
-      _initializeCurrentPosition(userId: userDoc.docs.first.id); // userId 값을 전달하여 호출
-      _initializeFamilyMarkers(userKey: userKey); // userKey 값을 전달하여 호출
-    } else {
-      print('User document not found');
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    _userId = prefs.getString('email');
+    if (_userId != null) {
+      QuerySnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance
+          .collection('USERLIST')
+          .where('email', isEqualTo: _userId)
+          .get();
+      if (userDoc.docs.isNotEmpty) {
+        Map<String, dynamic> userData = userDoc.docs.first.data();
+        String userKey = userData['key']; // userKey 값 가져오기
+        setState(() {
+          _userName = userData['name'];
+          _userImage = userData['imagePath'];
+        });
+        _initializeCurrentPosition(userId: userDoc.docs.first.id); // userId 값을 전달하여 호출
+        _initializeFamilyMarkers(userKey: userKey); // userKey 값을 전달하여 호출
+      } else {
+        print('User document not found');
+      }
     }
   }
-
 
   Future<void> _initializeCurrentPosition({required String userId}) async {
     DocumentSnapshot<Map<String, dynamic>> mapDoc = await FirebaseFirestore.instance
@@ -99,7 +99,7 @@ class _MapScreenState extends State<MapScreen> {
   Future<void> _initializeFamilyMarkers({required String userKey}) async {
     QuerySnapshot<Map<String, dynamic>> userQuerySnapshot = await FirebaseFirestore.instance
         .collection('USERLIST')
-        .where('email', isEqualTo: widget.userId)
+        .where('email', isEqualTo: _userId)
         .get();
 
     if (userQuerySnapshot.docs.isEmpty) {
@@ -152,7 +152,6 @@ class _MapScreenState extends State<MapScreen> {
       });
     });
   }
-
 
   Future<void> _getCurrentLocation() async {
     bool serviceEnabled;
@@ -246,7 +245,7 @@ class _MapScreenState extends State<MapScreen> {
     // 이메일을 기준으로 도큐먼트 아이디를 찾음
     QuerySnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance
         .collection('USERLIST')
-        .where('email', isEqualTo: widget.userId)
+        .where('email', isEqualTo: _userId)
         .get();
 
     if (userDoc.docs.isEmpty) {
@@ -294,8 +293,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _onCameraMove(CameraPosition position) {
-    setState(() {
-    });
+    setState(() {});
 
     if (_isCentered) {
       mapController.animateCamera(CameraUpdate.newLatLng(_currentPosition));
@@ -309,7 +307,7 @@ class _MapScreenState extends State<MapScreen> {
   void _showBottomSheet() async {
     QuerySnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance
         .collection('USERLIST')
-        .where('email', isEqualTo: widget.userId)
+        .where('email', isEqualTo: _userId)
         .get();
 
     if (userDoc.docs.isEmpty) {
@@ -328,7 +326,7 @@ class _MapScreenState extends State<MapScreen> {
       ),
       builder: (BuildContext context) {
         return FractionallySizedBox(
-          heightFactor: 0.8,
+          heightFactor: 0.56,
           child: Container(
             decoration: BoxDecoration(
               color: Color(0xff6D605A),
@@ -336,29 +334,29 @@ class _MapScreenState extends State<MapScreen> {
             ),
             child: Column(
               children: <Widget>[
-                SizedBox(height: 16),
+                SizedBox(height: 24),
                 _userImage != null
                     ? CircleAvatar(
-                  radius: 120,
+                  radius: 80,
                   backgroundImage: NetworkImage(_userImage!),
                 )
                     : CircleAvatar(
-                  radius: 120,
+                  radius: 80,
                   child: Icon(Icons.person, size: 80),
                 ),
                 SizedBox(height: 16),
                 Text(
                   _userName ?? '사용자 이름',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
+                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: ui.FontWeight.w600),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 32),
                 Expanded(
                   child: ListView(
                     padding: EdgeInsets.zero,
                     children: [
                       ListTile(
                         leading: Icon(Icons.edit, color: Colors.white),
-                        title: Text('회원정보수정', style: TextStyle(color: Colors.white)),
+                        title: Text('회원정보수정', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: ui.FontWeight.w600)),
                         onTap: () {
                           Navigator.pushAndRemoveUntil(
                             context,
@@ -371,16 +369,8 @@ class _MapScreenState extends State<MapScreen> {
                       ),
                       SizedBox(height: 16),
                       ListTile(
-                        leading: Icon(Icons.group, color: Colors.white),
-                        title: Text('가족연결관리', style: TextStyle(color: Colors.white)),
-                        onTap: () {
-                          // Add your onTap functionality here
-                        },
-                      ),
-                      SizedBox(height: 16),
-                      ListTile(
                         leading: Icon(Icons.help, color: Colors.white),
-                        title: Text('고객센터', style: TextStyle(color: Colors.white)),
+                        title: Text('고객센터', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: ui.FontWeight.w600)),
                         onTap: () {
                           Navigator.push(
                             context,
@@ -391,7 +381,7 @@ class _MapScreenState extends State<MapScreen> {
                       SizedBox(height: 16),
                       ListTile(
                         leading: Icon(Icons.logout, color: Colors.white),
-                        title: Text('로그아웃', style: TextStyle(color: Colors.white)),
+                        title: Text('로그아웃', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: ui.FontWeight.w600)),
                         onTap: _logout,
                       ),
                       SizedBox(height: 16),
@@ -406,11 +396,10 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-
   void _showFamilyInfoBottomSheet() async {
     QuerySnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance
         .collection('USERLIST')
-        .where('email', isEqualTo: widget.userId)
+        .where('email', isEqualTo: _userId)
         .get();
 
     if (userDoc.docs.isEmpty) {
@@ -444,7 +433,7 @@ class _MapScreenState extends State<MapScreen> {
                 itemBuilder: (context, index) {
                   var familyData = familyCollection[index].data() as Map<String, dynamic>;
                   String familyEmail = familyData['email'] ?? '';
-                  if (familyEmail == widget.userId) {
+                  if (familyEmail == _userId) {
                     return Container(); // 본인은 리스트에 포함되지 않음
                   }
                   bool isInWhiteList = whiteList.contains(familyEmail);
@@ -574,7 +563,6 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
@@ -658,7 +646,7 @@ class _MapScreenState extends State<MapScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ChatRoomListPage(userId: widget.userId),
+                    builder: (context) => ChatRoomListPage(userId: _userId!),
                   ),
                 );
               }, child: Image.asset('assets/img/wooki3.png', height: 60,),
