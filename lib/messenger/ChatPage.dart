@@ -384,9 +384,9 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text(widget.roomName, style: TextStyle(color: Colors.white),),
-      backgroundColor: const Color(0xff6D605A),
-      iconTheme: IconThemeData(color: Colors.white),
+      title: Text(widget.roomName, style: TextStyle(color: Color(0xff3A281F)),),
+      backgroundColor: const Color(0xffFFFDEF),
+      iconTheme: IconThemeData(color: Color(0xff3A281F)),
     ),
     drawer: Drawer(
       backgroundColor: Color(0xffFFFDEF),
@@ -429,9 +429,9 @@ class _ChatPageState extends State<ChatPage> {
               Expanded(
                 child: ListView(
                   children: participants.map((participant) => Container(
-                    color: Color(0xff6D605A),
+                    color: Color(0xffFFFDEF),
                     child: ListTile(
-                      textColor: Colors.white,
+                      textColor: Color(0xff3A281F),
                       title: Text(participant['name']!, style: TextStyle(fontWeight: FontWeight.w600)),
                       leading: participant['imagePath'] != null
                           ? CircleAvatar(
