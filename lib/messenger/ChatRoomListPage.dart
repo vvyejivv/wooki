@@ -260,6 +260,7 @@ class ChatRoomListPage extends StatelessWidget {
     );
   }
 
+
   void _showEditChatRoomNameDialog(
       BuildContext context, String chatRoomId, String currentName) {
     final controller = TextEditingController(text: currentName);
