@@ -23,7 +23,7 @@ class ChatRoomListPage extends StatelessWidget {
         ),
         title: const Text(
           '채팅방 목록',
-          style: TextStyle(color: Color(0xFF4E3E36), fontWeight: FontWeight.w500),
+          style: TextStyle(color: Color(0xFF4E3E36), fontWeight: FontWeight.w600),
         ),
         actions: [
           IconButton(
@@ -219,26 +219,34 @@ class ChatRoomListPage extends StatelessWidget {
   }
 
 
-
   void _showChatRoomSettingsDialog(
       BuildContext context, String chatRoomId, String peerNames) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('채팅방 설정'),
+          title: Text(
+            '채팅방 설정',
+            style: TextStyle(color: Color(0xFF3A281F)), // 폰트 색깔 변경
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                title: const Text('채팅방 이름 수정'),
+                title: Text(
+                  '채팅방 이름 수정',
+                  style: TextStyle(color: Color(0xFF3A281F)), // 폰트 색깔 변경
+                ),
                 onTap: () {
                   Navigator.of(context).pop();
                   _showEditChatRoomNameDialog(context, chatRoomId, peerNames);
                 },
               ),
               ListTile(
-                title: const Text('채팅방 나가기'),
+                title: Text(
+                  '채팅방 나가기',
+                  style: TextStyle(color: Color(0xFF3A281F)), // 폰트 색깔 변경
+                ),
                 onTap: () {
                   Navigator.of(context).pop();
                   _leaveChatRoom(context, chatRoomId);
@@ -246,11 +254,12 @@ class ChatRoomListPage extends StatelessWidget {
               ),
             ],
           ),
-          backgroundColor: Color(0xffECEAE9),
+          backgroundColor: Color(0xFFFFFDEF), // 배경색 변경
         );
       },
     );
   }
+
 
   void _showEditChatRoomNameDialog(
       BuildContext context, String chatRoomId, String currentName) {
@@ -260,15 +269,24 @@ class ChatRoomListPage extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('채팅방 이름 수정'),
+          title: Text(
+            '채팅방 이름 수정',
+            style: TextStyle(color: Color(0xFF3A281F)), // 폰트 색깔 변경
+          ),
           content: TextField(
             controller: controller,
-            decoration: const InputDecoration(hintText: '새 채팅방 이름'),
+            decoration: InputDecoration(
+              hintText: '새 채팅방 이름',
+              hintStyle: TextStyle(color: Color(0xFF3A281F)), // 폰트 색깔 변경
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('취소'),
+              child: Text(
+                '취소',
+                style: TextStyle(color: Color(0xFF3A281F)), // 폰트 색깔 변경
+              ),
             ),
             TextButton(
               onPressed: () {
@@ -280,9 +298,13 @@ class ChatRoomListPage extends StatelessWidget {
                 });
                 Navigator.of(context).pop();
               },
-              child: const Text('수정'),
+              child: Text(
+                '수정',
+                style: TextStyle(color: Color(0xFF3A281F)), // 폰트 색깔 변경
+              ),
             ),
           ],
+          backgroundColor: Color(0xFFFFFDEF), // 배경색 변경
         );
       },
     );
@@ -345,7 +367,10 @@ class __CreateChatRoomDialogState extends State<_CreateChatRoomDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('채팅방 생성'),
+      title: Text(
+        '채팅방 생성',
+        style: TextStyle(color: Color(0xFF3A281F)), // 폰트 색깔 변경
+      ),
       content: SingleChildScrollView(
         child: ListBody(
           children: widget.users.map((user) {
@@ -361,7 +386,7 @@ class __CreateChatRoomDialogState extends State<_CreateChatRoomDialog> {
                     child: userImagePath == null ? Icon(Icons.person) : null,
                   ),
                   SizedBox(width: 8),
-                  Text(userName),
+                  Text(userName, style: TextStyle(color: Color(0xFF3A281F))), // 폰트 색깔 변경
                 ],
               ),
               value: _selectedUserIds.contains(userEmail),
@@ -383,14 +408,14 @@ class __CreateChatRoomDialogState extends State<_CreateChatRoomDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('취소', style: TextStyle(color: Color(0xff6D605A))),
+          child: Text('취소', style: TextStyle(color: Color(0xFF3A281F))), // 폰트 색깔 변경
         ),
         TextButton(
           onPressed: () => _createChatRoom(context),
-          child: const Text('생성', style: TextStyle(color: Color(0xff6D605A))),
+          child: Text('생성', style: TextStyle(color: Color(0xFF3A281F))), // 폰트 색깔 변경
         ),
       ],
-      backgroundColor: Color(0xffECEAE9),
+      backgroundColor: Color(0xFFFFFDEF), // 배경색 변경
     );
   }
 
@@ -456,7 +481,4 @@ class __CreateChatRoomDialogState extends State<_CreateChatRoomDialog> {
       }
     }
   }
-
-
-
 }
