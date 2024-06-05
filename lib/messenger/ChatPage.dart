@@ -13,6 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'ChatRoomListPage.dart';
+import 'package:intl/intl.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({
@@ -102,6 +103,12 @@ class _ChatPageState extends State<ChatPage> {
         ),
       ),
     );
+  }
+
+  String formatDateTime(int timestamp) {
+    final DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    final DateFormat dateFormat = DateFormat.yMMMMd('ko');
+    return dateFormat.format(dateTime);
   }
 
   void _handleFileSelection() async {
@@ -299,9 +306,19 @@ class _ChatPageState extends State<ChatPage> {
           color: Colors.grey[300],
           borderRadius: BorderRadius.circular(10.0),
         ),
-        child: Text(
-          text,
-          style: const TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.w500, color: Color(0xFF3A281F)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              text,
+              style: const TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.w500, color: Color(0xFF3A281F)),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              formatDateTime(message.createdAt!), // 날짜 포맷팅 함수 적용
+              style: const TextStyle(color: Colors.grey),
+            ),
+          ],
         ),
       );
     }
@@ -482,10 +499,10 @@ class _ChatPageState extends State<ChatPage> {
       theme: const DefaultChatTheme(
         inputBackgroundColor: Colors.white,
         inputTextColor: Colors.black,
-        backgroundColor: Color.fromRGBO(255, 253, 239, 1),
-        primaryColor: Color.fromRGBO(109, 96, 90, 1),
-        secondaryColor: Color.fromRGBO(236, 234, 233, 1),
-        userAvatarImageBackgroundColor: Color.fromRGBO(168, 152, 145, 1),
+        backgroundColor: Color(0xFFFFFDEF),
+        primaryColor: Color(0xFF6D605A),
+        secondaryColor: Color(0xFFECEAE9),
+        userAvatarImageBackgroundColor: Color(0xFFA89891),
       ),
       customMessageBuilder: _customMessageBuilder,
       bubbleBuilder: _customBubbleBuilder,
