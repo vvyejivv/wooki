@@ -1,16 +1,13 @@
 <div align="center">
-    <img src="https://capsule-render.vercel.app/api?type=waving&color=6D605A&height=180&text=WOOKI&animation=&fontColor=ffffff&fontSize=50" />
+    <img src="https://capsule-render.vercel.app/api?type=waving&color=FFE458&height=180&text=우끼(우리끼리)&animation=&fontColor=3A281F&fontSize=40" />
     </div>
     
-<div align="center">
-    <img src="https://github.com/dlehdwo01/TeamProject1-FOOD114/assets/153072974/b841dedd-0e14-4cf8-9cd1-1459a6ebdb2e" style="width:600px;">
-    </div> 
 <div style= "text-align:left;">
     <h2 style="border-bottom: 1px solid #d8dee4; color: #282d33;">💡 프로젝트 소개 </h2>
     <li>현대 사회에서는 바쁜 일상으로 인해 소통이 줄어드는 경우가 많아져 이에 손쉽게 소통할 수 있는 공간을 고안했습니다.</li>
     <li>어플 사용자 중 특히 어린이와 노약자의 안전을 위해 정확한 위치가 필요하다고 생각했습니다.</li>
     <li>어플 사용자들의 효율적인 소통과 계획 관리, 가족 내 추억을 공유할 방법을 모색했습니다.</li>
-    <li>통합된 개인 공간 및 위치 공유, 기념일 및 일정 관리, 추억 보관 및 공유</li>
+    <li>통합된 개인 공간 및 위치 공유, 기념일 및 일정 관리, 추억 보관 및 공유할 수 있습니다.</li>
     </div>
     <div style= "text-align:left;">
     <h2 style="border-bottom: 1px solid #d8dee4; color: #282d33;"> 🗓 개발 기간 </h2>  
@@ -74,11 +71,15 @@
     </div>
     <div style= "text-align:left;">
     <h2 style="border-bottom: 1px solid #d8dee4; color: #282d33;"> 📕 발표 PPT </h2>  
-        <a href="https://drive.google.com/file/d/1-4HDC_t54uJ0O-f7somYnhE9M25_FQK2/view?usp=sharing" target="_blank">▶WOOKI 발표 PPT</a>
+        <a href="https://drive.google.com/file/d/1-4HDC_t54uJ0O-f7somYnhE9M25_FQK2/view?usp=sharing" target="_blank">▶우끼(wooki) 발표 PPT</a>
        </div>          
     <div style= "text-align:left;">
-    <h2 style="border-bottom: 1px solid #d8dee4; color: #282d33;"> 🎞 시연 영상 </h2>    
-        <a href="https://www.youtube.com/watch?v=WK8oGLTJD_Y">▶WOOKI 시연영상</a>
+    <h2 style="border-bottom: 1px solid #d8dee4; color: #282d33;"> 🎞 구현 화면 </h2>    
+        <div align="center">
+            <img src="https://github.com/vvyejivv/wooki/assets/153081833/0398952b-c790-49a0-9e92-c7f0cb5db4cd" style="width:600px;">
+            <img src="https://github.com/vvyejivv/wooki/assets/153081833/3f9e38e5-86af-417f-9ee0-113561ac728a" style="width:600px;">
+            <img src="https://github.com/vvyejivv/wooki/assets/153081833/b2a8c47b-8c2c-40dd-886c-f848cefea23a" style="width:600px;">
+        </div> 
     </div>
     <div style= "text-align:left;">
     <h2 style="border-bottom: 1px solid #d8dee4; color: #282d33; ">  👨‍👩‍👦‍👦 역할 분담 </h2>       
@@ -95,7 +96,7 @@
                 </ul>
             </li>
         </ul>
-        <h3>😎유지혜</h3>
+        <h3>😊유지혜</h3>
         <ul>            
             <li><h4>작업 페이지</h4>
                 <ul>                    
@@ -108,7 +109,7 @@
                 </ul>
             </li>
         </ul>
-       <h3>😊김동휘</h3>
+       <h3>😎김동휘</h3>
         <ul>            
             <li><h4>작업 페이지</h4>
                 <ul>                    
@@ -121,7 +122,7 @@
                 </ul>
             </li>
         </ul>
-        <h3>🐴김승인</h3>
+        <h3>🤗김승인</h3>
         <ul>
             <li><h4>작업 페이지</h4>
                 <ul>                    
@@ -134,7 +135,7 @@
                 </ul>
             </li>
         </ul>
-       <h3>🐯이진순</h3>
+       <h3>😄이진순</h3>
         <ul>
             <li><h4>작업 페이지</h4>
                 <ul>                    
