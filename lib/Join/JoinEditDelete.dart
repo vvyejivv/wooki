@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import '../firebase_options.dart';
+import '../home/home_main.dart';
 import '../map/MapMain.dart';
 import '../CustomerServiceCenter/main.dart';
 
@@ -249,12 +250,17 @@ class _UserEditScreenState extends State<UserEditScreen> {
                         onPressed: () async {
                           if (_emailController.text == widget.user['email']) {
                             try {
+                              print("test");
                               await FirebaseFirestore.instance.collection('USERLIST').doc(widget.user.id).delete();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text('사용자가 탈퇴되었습니다.')),
                               );
-                              Navigator.pop(context); // Close the dialog
-                              Navigator.pop(context); // Close the screen
+                              Navigator.of(context, rootNavigator: true).pop(); // Close the dialog
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => FirstMainHome())
+                              );
+                              // Navigator.pop(context); // Close the screen
                             } catch (e) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text('탈퇴 중 오류가 발생했습니다: $e')),
