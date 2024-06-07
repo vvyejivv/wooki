@@ -78,7 +78,6 @@
         <div align="center">
             <img src="https://github.com/vvyejivv/wooki/assets/153081833/0398952b-c790-49a0-9e92-c7f0cb5db4cd" style="width:600px;">
             <img src="https://github.com/vvyejivv/wooki/assets/153081833/3f9e38e5-86af-417f-9ee0-113561ac728a" style="width:600px;">
-            <img src="https://github.com/vvyejivv/wooki/assets/153081833/b2a8c47b-8c2c-40dd-886c-f848cefea23a" style="width:600px;">
         </div> 
     </div>
     <div style= "text-align:left;">
