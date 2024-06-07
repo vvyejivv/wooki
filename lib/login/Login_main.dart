@@ -453,14 +453,6 @@ class _UserLoginState extends State<UserLogin> {
         SizedBox(height: 15),
         ElevatedButton(
           onPressed: _login,
-          child: Text(
-            '로그인',
-            style: TextStyle(
-                fontFamily: 'Pretendard-SemiBold',
-                fontSize: 15,
-                color: Color(0xFF3A281F),
-                fontWeight: FontWeight.bold),
-          ),
           style: ElevatedButton.styleFrom(
             backgroundColor: Color(0xFFFFE458),
             foregroundColor: Color(0xFF3A281F),
@@ -468,6 +460,14 @@ class _UserLoginState extends State<UserLogin> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(5),
             ),
+          ),
+          child: Text(
+            '로그인',
+            style: TextStyle(
+                fontFamily: 'Pretendard-SemiBold',
+                fontSize: 15,
+                color: Color(0xFF3A281F),
+                fontWeight: FontWeight.bold),
           ),
         ),
         SizedBox(height: 10),
@@ -478,6 +478,13 @@ class _UserLoginState extends State<UserLogin> {
                 MaterialPageRoute(builder: (context) => JoinEx2())
             );
           },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFF6D605A),
+            minimumSize: Size(double.infinity, 50),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+          ),
           child: Text(
             '회원가입',
             style: TextStyle(
@@ -485,13 +492,6 @@ class _UserLoginState extends State<UserLogin> {
                 fontSize: 15,
                 color: Colors.white,
                 fontWeight: FontWeight.bold),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFF6D605A),
-            minimumSize: Size(double.infinity, 50),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5),
-            ),
           ),
         ),
       ],

@@ -7,6 +7,7 @@ import 'dart:io';
 import '../firebase_options.dart';
 import '../map/MapMain.dart';
 import '../CustomerServiceCenter/main.dart';
+import '../main.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -199,13 +200,23 @@ class _UserEditScreenState extends State<UserEditScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('정보가 업데이트되었습니다.')),
       );
-      Navigator.pop(context);
+
+      if (mounted) { // Check if the widget is still mounted
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => MapScreen()),
+              (Route<dynamic> route) => false,
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('업데이트 중 오류가 발생했습니다: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('업데이트 중 오류가 발생했습니다: $e')),
+        );
+      }
     }
   }
+
 
   void _deleteUser() async {
     showGeneralDialog(
@@ -250,11 +261,12 @@ class _UserEditScreenState extends State<UserEditScreen> {
                           if (_emailController.text == widget.user['email']) {
                             try {
                               await FirebaseFirestore.instance.collection('USERLIST').doc(widget.user.id).delete();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('사용자가 탈퇴되었습니다.')),
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => FirstMain(),
+                                  )
                               );
-                              Navigator.pop(context); // Close the dialog
-                              Navigator.pop(context); // Close the screen
                             } catch (e) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text('탈퇴 중 오류가 발생했습니다: $e')),

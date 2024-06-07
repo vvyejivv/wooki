@@ -180,6 +180,11 @@ class _JoinScreenState extends State<JoinScreen> {
       _email.clear();
       _phone.clear();
       _verificationCodeController.clear();
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => LoginApp()),
+      );
     } catch (e) {
       _showSnackBar(context, 'Error: $e');
       print('Error adding document: $e');

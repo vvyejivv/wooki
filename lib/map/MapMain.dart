@@ -582,6 +582,7 @@ class _MapScreenState extends State<MapScreen> {
           style: TextStyle(color: Color(0xFF4E3E36), fontWeight: FontWeight.w500),
         ),
         backgroundColor: const Color(0xFFFFFDEF),
+        leading: null,
         actions: [
           IconButton(
             icon: Icon(
