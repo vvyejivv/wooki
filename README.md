@@ -1,44 +1,30 @@
 <div align="center">
-    <img src="https://capsule-render.vercel.app/api?type=waving&color=ff8002&height=180&text=FOOD114&animation=&fontColor=ffffff&fontSize=50" />
+    <img src="https://capsule-render.vercel.app/api?type=waving&color=ff8002&height=180&text=WOOKI&animation=&fontColor=ffffff&fontSize=50" />
     </div>
     
 <div align="center">
     <img src="https://github.com/dlehdwo01/TeamProject1-FOOD114/assets/153072974/b841dedd-0e14-4cf8-9cd1-1459a6ebdb2e" style="width:600px;">
     </div> 
-<div style="font-weight: 700; font-size: 15px; text-align: center; color: #282d33;" align="center">  
-    <a href='http://3.38.73.131:8080/food114.do'> FOOD114 시연 사이트 클릭</a>
-    <div><h4>시연 계정 </h4></div>
-    <div>1. 고객</div>
-    <div>ID : test123</div>
-    <div>PW : 1234</div><br>
-    <div>2. 사업자</div>
-    <div>ID : hi123</div>
-    <div>PW : 1234qwer@@</div>
-    </div> 
 <div style= "text-align:left;">
     <h2 style="border-bottom: 1px solid #d8dee4; color: #282d33;">💡 프로젝트 소개 </h2>
-    <li>FOOD114는 음식점들의 이벤트들을 소개해주어 바쁜 현대인들의 식비를 조금이라도 줄일 수 있는 기회를 드리는 웹사이트입니다.</li>
-    <li>고객이 주소를 지정하면 주변 이벤트들을 확인이 가능하며 희망하는 가게의 상품 주문이 가능합니다</li>
-    <li>지도를 이용하여 보다 편리하게 업체 조회가 가능합니다</li>
-    <li>업체에서는 본인의 가게를 등록하여 판매 상품 관리가 가능하고 이벤트를 등록하여 홍보효과도 기대 할 수 있습니다.</li>
+    <li>현대 사회에서는 바쁜 일상으로 인해 소통이 줄어드는 경우가 많아져 이에 손쉽게 소통할 수 있는 공간을 고안했습니다.</li>
+    <li>어플 사용자 중 특히 어린이와 노약자의 안전을 위해 정확한 위치가 필요하다고 생각했습니다.</li>
+    <li>어플 사용자들의 효율적인 소통과 계획 관리, 가족 내 추억을 공유할 방법을 모색했습니다.</li>
+    <li>통합된 개인 공간 및 위치 공유, 기념일 및 일정 관리, 추억 보관 및 공유</li>
     </div>
     <div style= "text-align:left;">
     <h2 style="border-bottom: 1px solid #d8dee4; color: #282d33;"> 🗓 개발 기간 </h2>  
         <ul>
-            <li> <h4>02/22 ~ 02/28</h4>
+            <li> <h4>05/07 ~ 05/14</h4>
                 <ul>
                     <li>프로젝트 기획 회의(일별 2시간)</li>
                     <li>프로젝트 컨셉 및 DB 테이블 설계</li>
                 </ul>
             </li>
-            <li> <h4>03/01 ~ 03/17</h4>
+            <li> <h4>05/16 ~ 06/05</h4>
                 <ul>
-                    <li>프로젝트 개발 진행</li>                    
-                </ul>
-            </li>
-            <li> <h4>03/18 ~ 03/20</h4>
-                <ul>
-                    <li>각 페이지에서 개선할 점과 보완할 점 수정</li>                          
+                    <li>프로젝트 개발 진행</li>
+                    <li>테스트 및 보완할 점 수정</li>
                 </ul>
             </li>
         </ul>
@@ -54,20 +40,20 @@
                 <th>GitHub 프로필</th>
             </tr>
             <tr>
-                <th>이동재</th>
-                <td>https://github.com/dlehdwo01</td>
-            </tr>
-            <tr>
-                <td>김예지</td>
+                <th>김예지</th>
                 <td>https://github.com/vvyejivv</td>
             </tr>
             <tr>
-                <td>박승영</td>
+                <td>유지혜</td>
                 <td>https://github.com/javagigig</td>
             </tr>
             <tr>
-                <td>박경빈</td>
+                <td>김동휘</td>
                 <td>https://github.com/Bin2been</td>
+            </tr>
+            <tr>
+                <td>김승인</td>
+                <td>https://github.com/lsssssssssssssss</td>
             </tr>
             <tr>
                 <td>이진순</td>
@@ -80,13 +66,10 @@
 <div style= "text-align:left;">
     <h2 style="color: #282d33;"> 🛠️ 사용 언어 </h2>
     <div style="margin: 0 auto; text-align: left;" align= "left"> <img src="https://img.shields.io/badge/Spring Boot-6DB33F?style=for-the-badge&logo=Spring Boot&logoColor=white">
-          <img src="https://img.shields.io/badge/Vue.js-4FC08D?style=for-the-badge&logo=Vue.js&logoColor=white">
-          <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=MySQL&logoColor=white">
-          <img src="https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=Java&logoColor=white">
-          <img src="https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jQuery&logoColor=white">
-          <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=CSS3&logoColor=white">
-          <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=HTML5&logoColor=white">
-          <img src="https://img.shields.io/badge/Javascript-F7DF1E?style=for-the-badge&logo=Javascript&logoColor=white">
+          <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white">
+          <img src="https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white">
+          <img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=white">
+          <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white">
           </div>
     </div>
     <div style= "text-align:left;">
@@ -99,7 +82,7 @@
     </div>
     <div style= "text-align:left;">
     <h2 style="border-bottom: 1px solid #d8dee4; color: #282d33; ">  👨‍👩‍👦‍👦 역할 분담 </h2>       
-        <h3>😎이동재</h3>            
+        <h3>😇김예지</h3>            
         <ul>
 <!--             <li> <h4>역할</h4>
                 <ul>                    
@@ -117,7 +100,7 @@
                 </ul>
             </li>
         </ul>
-        <h3>😇김예지</h3>
+        <h3>😎김예지</h3>
         <ul>            
 <!--             <li><h4>역할</h4>
                 <ul>                    
