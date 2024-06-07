@@ -14,6 +14,7 @@ import 'package:http/http.dart' as http;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'ChatRoomListPage.dart';
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({
@@ -38,6 +39,7 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
+    initializeDateFormatting('ko', null); // 로케일 데이터를 초기화합니다.
     _user = types.User(id: widget.userId);
     _loadMessages();
     _loadParticipants();
@@ -218,7 +220,7 @@ class _ChatPageState extends State<ChatPage> {
         .snapshots()
         .listen((snapshot) {
       final messages = snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
+        final data = doc.data();
         if (data['type'] == 'system') {
           return types.CustomMessage(
             author: types.User(id: ''),
@@ -290,7 +292,7 @@ class _ChatPageState extends State<ChatPage> {
       });
     }
 
-    Navigator.push(
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => ChatRoomListPage(userId: widget.userId)),
     );
