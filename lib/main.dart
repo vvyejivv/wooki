@@ -5,12 +5,14 @@ import 'package:wooki/login/Login_main.dart';
 import 'package:provider/provider.dart';
 import 'package:wooki/find/search_id.dart';
 import '../firebase_options.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await initializeDateFormatting('ko', null); // 로케일 데이터를 초기화합니다.
   runApp(
     MultiProvider(
       providers: [

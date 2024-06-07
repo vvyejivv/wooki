@@ -150,6 +150,8 @@ class ChatRoomListPage extends StatelessWidget {
         return '사진을 보냈습니다.';
       case 'file':
         return '파일: ${messageData['name']}';
+      case 'system':
+        return '어떤 유저가 방에서 나갔습니다.';
       default:
         return '알 수 없는 메시지 유형입니다.';
     }
