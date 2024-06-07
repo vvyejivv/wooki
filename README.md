@@ -45,15 +45,15 @@
             </tr>
             <tr>
                 <td>유지혜</td>
-                <td>https://github.com/javagigig</td>
+                <td>https://github.com/jih8908</td>
             </tr>
             <tr>
                 <td>김동휘</td>
-                <td>https://github.com/Bin2been</td>
+                <td>https://github.com/KDH94</td>
             </tr>
             <tr>
                 <td>김승인</td>
-                <td>https://github.com/lsssssssssssssss</td>
+                <td>https://github.com/hommefatale-1</td>
             </tr>
             <tr>
                 <td>이진순</td>
@@ -65,20 +65,20 @@
 
 <div style= "text-align:left;">
     <h2 style="color: #282d33;"> 🛠️ 사용 언어 </h2>
-    <div style="margin: 0 auto; text-align: left;" align= "left"> <img src="https://img.shields.io/badge/Spring Boot-6DB33F?style=for-the-badge&logo=Spring Boot&logoColor=white">
+    <div style="margin: 0 auto; text-align: left;" align= "left">
           <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white">
           <img src="https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white">
           <img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=white">
           <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white">
-          </div>
+    </div>
     </div>
     <div style= "text-align:left;">
     <h2 style="border-bottom: 1px solid #d8dee4; color: #282d33;"> 📕 발표 PPT </h2>  
-        <a href="https://docs.google.com/presentation/d/1F4bodDgNgG5s8ovWm_vM8CS3e3GtrGpu/edit?usp=sharing&ouid=117668902424628902239&rtpof=true&sd=true" target="_blank">▶FOOD114 발표 PPT</a>
+        <a href="https://drive.google.com/file/d/1-4HDC_t54uJ0O-f7somYnhE9M25_FQK2/view?usp=sharing" target="_blank">▶WOOKI 발표 PPT</a>
        </div>          
     <div style= "text-align:left;">
     <h2 style="border-bottom: 1px solid #d8dee4; color: #282d33;"> 🎞 시연 영상 </h2>    
-        <a href="https://www.youtube.com/watch?v=WK8oGLTJD_Y">▶FOOD114 시연영상</a>
+        <a href="https://www.youtube.com/watch?v=WK8oGLTJD_Y">▶WOOKI 시연영상</a>
     </div>
     <div style= "text-align:left;">
     <h2 style="border-bottom: 1px solid #d8dee4; color: #282d33; ">  👨‍👩‍👦‍👦 역할 분담 </h2>       
