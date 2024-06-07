@@ -200,13 +200,23 @@ class _UserEditScreenState extends State<UserEditScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('정보가 업데이트되었습니다.')),
       );
-      Navigator.pop(context);
+
+      if (mounted) { // Check if the widget is still mounted
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => MapScreen()),
+              (Route<dynamic> route) => false,
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('업데이트 중 오류가 발생했습니다: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('업데이트 중 오류가 발생했습니다: $e')),
+        );
+      }
     }
   }
+
 
   void _deleteUser() async {
     showGeneralDialog(
