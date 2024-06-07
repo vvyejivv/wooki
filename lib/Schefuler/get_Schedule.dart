@@ -13,19 +13,37 @@ class ScheduleService {
       TextEditingController descriptionController, // 일정 설명 입력 필드 컨트롤러
       DateTime selectedDate, // 선택된 날짜
       String selectedType, // 선택된 기념일 유형
-      Function(DateTime) updateScheduleCount // 일정 개수를 업데이트하는 콜백 함수
+      Function(DateTime) updateScheduleCount, // 일정 개수를 업데이트하는 콜백 함수
+      String email // 세션 이메일
       ) async {
     if (formKey.currentState!.validate()) {
       // 폼의 유효성 검사
       formKey.currentState!.save(); // 폼 저장
 
       try {
+        // 사용자 이메일로부터 key 값을 가져옴
+        QuerySnapshot userSnapshot = await _firestore
+            .collection('USERLIST')
+            .where('email', isEqualTo: email)
+            .get();
+
+        if (userSnapshot.docs.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('사용자를 찾을 수 없습니다.')),
+          );
+          return;
+        }
+
+        String userKey = userSnapshot.docs.first['key'];
+
         // Firestore에 'schedules' 컬렉션에 일정 추가
         await _firestore.collection('schedules').add({
           'title': titleController.text, // 일정 제목
           'description': descriptionController.text, // 일정 설명
           'date': selectedDate, // 선택된 날짜
           'type': selectedType, // 선택된 기념일 유형
+          'email': email, // 사용자 이메일 추가
+          'key': userKey, // 사용자 key 추가
         });
 
         // 성공 메시지 표시
@@ -75,23 +93,38 @@ class ScheduleService {
 
   // 선택된 날짜에 해당하는 일정을 Firestore에서 가져오는 메서드
   Future<List<Map<String, dynamic>>> fetchSchedulesForDate(
-      DateTime selectedDate) async {
+      DateTime selectedDate, String email) async {
     List<Map<String, dynamic>> schedules = []; // 일정을 저장할 리스트 초기화
     try {
-      // Firestore에서 'schedules' 컬렉션의 날짜가 선택된 날짜와 일치하는 문서를 가져옴
-      QuerySnapshot querySnapshot = await _firestore
+      // 사용자 이메일로부터 key 값을 가져옴
+      QuerySnapshot userSnapshot = await _firestore
+          .collection('USERLIST')
+          .where('email', isEqualTo: email)
+          .get();
+
+      if (userSnapshot.docs.isEmpty) {
+        print('No user found for email $email');
+        return []; // 사용자가 없으면 빈 리스트 반환
+      }
+
+      String userKey = userSnapshot.docs.first['key'];
+      print('User key for email $email: $userKey'); // key 확인용 로그
+
+      // Firestore에서 'schedules' 컬렉션의 날짜가 선택된 날짜와 일치하고 key가 동일한 문서를 가져옴
+      QuerySnapshot scheduleSnapshot = await _firestore
           .collection('schedules')
           .where('date', isEqualTo: Timestamp.fromDate(selectedDate))
+          .where('key', isEqualTo: userKey)
           .get();
 
       // 가져온 문서를 반복하여 데이터 리스트에 추가
-      querySnapshot.docs.forEach((doc) {
+      for (var doc in scheduleSnapshot.docs) {
         final data = doc.data() as Map<String, dynamic>?; // 문서 데이터를 Map 형식으로 변환
         if (data != null) {
           data['documentId'] = doc.id; // 문서 ID를 데이터에 추가
           schedules.add(data); // 데이터 리스트에 추가
         }
-      });
+      }
       return schedules; // 일정 리스트 반환
     } catch (e) {
       print("Error fetching schedules: $e"); // 에러 로그 출력
@@ -101,11 +134,11 @@ class ScheduleService {
 
   // 선택된 날짜에 해당하는 일정 개수를 업데이트하는 함수입니다.
   Future<Map<String, dynamic>> updateScheduleCount(
-      DateTime selectedDate) async {
+      DateTime selectedDate, String email) async {
     try {
       // 선택된 날짜의 일정을 가져옴
       List<Map<String, dynamic>> fetchedSchedules =
-          await fetchSchedulesForDate(selectedDate);
+      await fetchSchedulesForDate(selectedDate, email);
       return {
         'schedules': fetchedSchedules, // 일정 리스트
         'scheduleCount': fetchedSchedules.length, // 일정 개수

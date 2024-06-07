@@ -6,6 +6,7 @@ import 'get_Schedule.dart';
 import 'today_banner.dart';
 import 'delete_SchedulScreen.dart'; // deleteSchedule 함수가 있는 파일 경로
 import '../map/MapMain.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(DateTime) updateScheduleCount;
@@ -28,28 +29,44 @@ class _HomeScreenState extends State<HomeScreen> {
   // 일정 개수와 일정 목록을 저장하는 변수입니다.
   int scheduleCount = 0;
   List<Map<String, dynamic>> schedules = [];
+  String? email; // 이메일을 저장할 변수
 
   @override
   void initState() {
     super.initState();
-    // 화면 초기화 시 선택된 날짜에 해당하는 일정 개수를 가져옵니다.
-    updateScheduleCount(selectedDate);
+    _loadEmail();
+  }
+
+  // 이메일을 로드하는 함수입니다.
+  Future<void> _loadEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      email = prefs.getString('email');
+      print('Loaded email: $email'); // 이메일 로드 확인용 로그
+      if (email != null) {
+        updateScheduleCount(selectedDate);
+      }
+    });
   }
 
   // 날짜가 선택될 때 호출되는 함수입니다.
   void onDaySelected(DateTime selectedDay, DateTime focusedDay) {
     setState(() {
       selectedDate = selectedDay;
-      updateScheduleCount(selectedDate);
+      if (email != null) {
+        updateScheduleCount(selectedDate);
+      }
     });
   }
 
   // 선택된 날짜에 해당하는 일정 개수를 업데이트하는 함수입니다.
   void updateScheduleCount(DateTime selectedDate) async {
+    if (email == null) return;
+
     try {
       // ScheduleService를 통해 선택된 날짜의 일정을 가져옵니다.
       List<Map<String, dynamic>> fetchedSchedules =
-          await ScheduleService().fetchSchedulesForDate(selectedDate);
+      await ScheduleService().fetchSchedulesForDate(selectedDate, email!);
       setState(() {
         schedules = fetchedSchedules;
         scheduleCount = fetchedSchedules.length;
@@ -98,9 +115,11 @@ class _HomeScreenState extends State<HomeScreen> {
               count: scheduleCount,
             ),
             Expanded(
-              child: FutureBuilder<List<Map<String, dynamic>>>(
+              child: email == null
+                  ? Center(child: CircularProgressIndicator())
+                  : FutureBuilder<List<Map<String, dynamic>>>(
                 // ScheduleService를 통해 선택된 날짜의 일정을 가져옵니다.
-                future: ScheduleService().fetchSchedulesForDate(selectedDate),
+                future: ScheduleService().fetchSchedulesForDate(selectedDate, email!),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     // 데이터를 불러오는 중이면 로딩 스피너를 표시합니다.
@@ -127,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   child: Text(
                                     '${schedules[index]['title']}',
                                     style:
-                                        TextStyle(fontWeight: FontWeight.bold),
+                                    TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ],
@@ -157,10 +176,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                       MaterialPageRoute(
                                         builder: (context) =>
                                             EditScheduleScreen(
-                                          schedule: schedules[index],
-                                          updateScheduleCount:
+                                              schedule: schedules[index],
+                                              updateScheduleCount:
                                               updateScheduleCount, // updateScheduleCount 메서드 전달
-                                        ),
+                                            ),
                                       ),
                                     );
                                     if (result == true) {
@@ -177,9 +196,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     // 일정을 삭제합니다.
                                     deleteSchedule(
                                         context, selectedDate, schedules, index,
-                                        () {
-                                      updateScheduleCount(selectedDate);
-                                    });
+                                            () {
+                                          updateScheduleCount(selectedDate);
+                                        });
                                   },
                                 ),
                               ],
@@ -209,7 +228,7 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (context) => AddScheduleScreen(
                 selectedDate: selectedDate,
                 updateScheduleCount:
-                    updateScheduleCount, // updateScheduleCount 메서드 전달
+                updateScheduleCount, // updateScheduleCount 메서드 전달
               ),
             ),
           );

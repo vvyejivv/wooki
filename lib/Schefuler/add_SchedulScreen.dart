@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'get_Schedule.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddScheduleScreen extends StatefulWidget {
   final DateTime selectedDate; // 이전 화면에서 전달된 선택된 날짜
-  final Function(DateTime)
-      updateScheduleCount; // HomeScreen 클래스에서 updateScheduleCount 메서드를 전달받음
+  final Function(DateTime) updateScheduleCount; // HomeScreen 클래스에서 updateScheduleCount 메서드를 전달받음
 
-  AddScheduleScreen(
-      {required this.selectedDate, required this.updateScheduleCount});
+  AddScheduleScreen({required this.selectedDate, required this.updateScheduleCount});
 
   @override
-  _AddScheduleScreenState createState() =>
-      _AddScheduleScreenState(selectedDate: selectedDate);
+  _AddScheduleScreenState createState() => _AddScheduleScreenState(selectedDate: selectedDate);
 }
 
 class _AddScheduleScreenState extends State<AddScheduleScreen> {
@@ -24,6 +22,7 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
   late TextEditingController _descriptionController; // 일정 설명 입력 필드 컨트롤러
   late DateTime _selectedDate; // 선택된 날짜
   String _selectedType = '기념일'; // 초기 기념일 유형
+  String? _email; // 세션 이메일
 
   _AddScheduleScreenState({required DateTime selectedDate}) {
     _selectedDate = selectedDate; // 초기 선택된 날짜 설정
@@ -34,6 +33,14 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
     super.initState();
     _titleController = TextEditingController(); // 제목 입력 필드 컨트롤러 초기화
     _descriptionController = TextEditingController(); // 설명 입력 필드 컨트롤러 초기화
+    _loadEmail(); // 이메일 로드
+  }
+
+  Future<void> _loadEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _email = prefs.getString('email'); // 이메일 값 로드
+    });
   }
 
   @override
@@ -61,6 +68,13 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
 
   // 일정 저장 메서드
   void _saveSchedule(BuildContext context) {
+    if (_email == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('이메일을 불러오지 못했습니다. 다시 시도해주세요.')),
+      );
+      return;
+    }
+
     ScheduleService().saveSchedule(
       context,
       _formKey,
@@ -68,7 +82,8 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
       _descriptionController,
       _selectedDate,
       _selectedType,
-      widget.updateScheduleCount,
+          (date) => widget.updateScheduleCount(date),
+      _email!, // 세션 이메일 전달
     );
   }
 
@@ -125,7 +140,7 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
                     height: 50.0, // 높이 설정
                     width: double.infinity, // 너비 설정
                     padding:
-                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                    EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                   ),
                   SizedBox(height: 16), // 위젯 간 간격 설정
                   TextFormField(
@@ -188,7 +203,7 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
                     height: 50.0, // 높이 설정
                     width: double.infinity, // 너비 설정
                     padding:
-                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                    EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                   ),
                   SizedBox(height: 16),
                   Row(
@@ -213,7 +228,7 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
                     height: 50.0, // 높이 설정
                     width: double.infinity, // 너비 설정
                     padding:
-                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                    EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                   ),
                   SizedBox(height: 16),
                   Row(
@@ -272,7 +287,7 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
                     height: 50.0, // 높이 설정
                     width: double.infinity, // 너비 설정
                     padding:
-                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                    EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                   ),
                   SizedBox(height: 16),
                   TextFormField(
